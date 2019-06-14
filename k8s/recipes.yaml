@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: recipes
+  labels:
+    app: recipes
+    service: recipes
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    name: http
+  selector:
+    app: recipes
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: recipes
+  labels:
+    app: recipes
+    version: v1
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: recipes
+    spec:
+      containers:
+      - image: localhost:5000/sandwiches-recipes
+        name: recipes
+        resources: {}
+        ports:
+          - containerPort: 8080
+      restartPolicy: Always
+status: {}

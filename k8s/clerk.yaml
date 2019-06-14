@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: clerk
+  labels:
+    app: clerk
+    service: clerk
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    name: http
+  selector:
+    app: clerk
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: clerk
+  labels:
+    app: clerk
+    version: v1
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: clerk
+    spec:
+      containers:
+      - image: localhost:5000/sandwiches-clerk
+        name: clerk
+        resources: {}
+        ports:
+          - containerPort: 8080
+      restartPolicy: Always
+status: {}
