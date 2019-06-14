@@ -1,0 +1,33 @@
+---
+version: '3'
+
+services:
+
+  recipes:
+    build:
+      context: './recipes'
+
+  ingredients:
+    build:
+      context: './ingredients'
+
+  menu:
+    build:
+      context: './menu'
+    depends_on:
+      - 'recipes'
+      - 'ingredients'
+
+  clerk:
+    build:
+      context: './clerk'
+    depends_on:
+      - 'menu'
+
+  nginx:
+    build:
+      context: './nginx'
+    ports:
+      - '80:80'
+    depends_on:
+      - 'clerk'
