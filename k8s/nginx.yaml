@@ -30,7 +30,7 @@ spec:
         app: nginx
     spec:
       containers:
-      - image: localhost:5000/sandwiches-nginx:v1
+      - image: calvinmclean/sandwiches-nginx:v1
         imagePullPolicy: Always
         name: nginx
         resources: {}

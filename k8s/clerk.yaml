@@ -29,7 +29,7 @@ spec:
         app: clerk
     spec:
       containers:
-      - image: localhost:5000/sandwiches-clerk:v1
+      - image: calvinmclean/sandwiches-clerk:v1
         name: clerk
         resources: {}
         ports:
