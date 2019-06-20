@@ -1,0 +1,167 @@
+##################################################################################################
+# Clerk service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: clerk
+  labels:
+    app: clerk
+    service: clerk
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    name: http
+  selector:
+    app: clerk
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: clerk
+  labels:
+    app: clerk
+    version: v1
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: clerk
+    spec:
+      containers:
+      - image: calvinmclean/sandwiches-clerk:v1
+        name: clerk
+        resources: {}
+        ports:
+          - containerPort: 8080
+      restartPolicy: Always
+status: {}
+---
+##################################################################################################
+# Ingredients service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingredients
+  labels:
+    app: ingredients
+    service: ingredients
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    name: http
+  selector:
+    app: ingredients
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ingredients
+  labels:
+    app: ingredients
+    version: v1
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: ingredients
+    spec:
+      containers:
+      - image: calvinmclean/sandwiches-ingredients:v1
+        name: ingredients
+        resources: {}
+        ports:
+          - containerPort: 8080
+      restartPolicy: Always
+status: {}
+---
+##################################################################################################
+# Menu service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: menu
+  labels:
+    app: menu
+    service: menu
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    name: http
+  selector:
+    app: menu
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: menu
+  labels:
+    app: menu
+    version: v1
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: menu
+    spec:
+      containers:
+      - image: calvinmclean/sandwiches-menu:v1
+        name: menu
+        resources: {}
+        ports:
+          - containerPort: 8080
+      restartPolicy: Always
+status: {}
+---
+##################################################################################################
+# Recipes service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: recipes
+  labels:
+    app: recipes
+    service: recipes
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    name: http
+  selector:
+    app: recipes
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: recipes
+  labels:
+    app: recipes
+    version: v1
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: recipes
+    spec:
+      containers:
+      - image: calvinmclean/sandwiches-recipes:v1
+        name: recipes
+        resources: {}
+        ports:
+          - containerPort: 8080
+      restartPolicy: Always
+status: {}

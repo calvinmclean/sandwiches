@@ -1,0 +1,57 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: sandwiches-gateway
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: sandwiches
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - sandwiches-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /menu
+    route:
+    - destination:
+        host: menu
+        port:
+          number: 8080
+  - match:
+    - uri:
+        prefix: /ingredients
+    route:
+    - destination:
+        host: ingredients
+        port:
+          number: 8080
+  - match:
+    - uri:
+        prefix: /recipes
+    route:
+    - destination:
+        host: recipes
+        port:
+          number: 8080
+  - match:
+    - uri:
+        prefix: /clerk
+    route:
+    - destination:
+        host: clerk
+        port:
+          number: 8080
