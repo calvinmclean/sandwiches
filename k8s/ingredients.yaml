@@ -29,7 +29,7 @@ spec:
         app: ingredients
     spec:
       containers:
-      - image: localhost:5000/sandwiches-ingredients
+      - image: localhost:5000/sandwiches-ingredients:v1
         name: ingredients
         resources: {}
         ports:

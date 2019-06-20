@@ -29,7 +29,7 @@ spec:
         app: menu
     spec:
       containers:
-      - image: localhost:5000/sandwiches-menu
+      - image: localhost:5000/sandwiches-menu:v1
         name: menu
         resources: {}
         ports:
