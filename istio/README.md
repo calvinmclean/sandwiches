@@ -45,14 +45,26 @@ Note: these instructions are a modified version if [Istio's demo](https://istio.
   # Check in browser by echoing and clicking link
   echo http://${GATEWAY_URL}/clerk/order/
   ```
+  - By default, since two versions of `clerk` are running, you will see each version about 50% of the time
+  - Make a few orders and notice that it alternates between a simple output (`v1`) and a more informative output (`v2`)
 
 8. Define Destination Rules
   ```shell
   kubectl apply -f istio/destination-rule.yaml
   ```
 
-9. Apply initial Virtual Service (_note_: now I am following [this guide](https://istio.io/docs/tasks/traffic-management/request-routing/))
+9. Apply the `v1` VirtualService (_note_: now I am following [this guide](https://istio.io/docs/tasks/traffic-management/request-routing/))
   ```shell
   kubectl apply -f istio/virtual-service-all-v1.yaml
   kubectl get vs
+  ```
+  - This will force Istio to only route traffic to `v1` of each service, most notably `clerk:v1` (since it is the only one with a `v2`)
+  - Make a few orders to see that you always see the simple `v1` output
+
+10. Apply other VirtualServices
+  ```shell
+  # This will force Istio to split traffic 30/70 between v1 and v2
+  kubectl apply -f istio/vs-clerk-30-70.yaml
+  # This will force Istio to only show v2
+  kubectl apply -f istio/vs-clerk-v2.yaml
   ```
