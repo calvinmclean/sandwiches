@@ -45,7 +45,7 @@ Note: these instructions are a modified version if [Istio's demo](https://istio.
   # Check in browser by echoing and clicking link
   echo http://${GATEWAY_URL}/clerk/order/
   ```
-  - By default, since two versions of `clerk` are running, you will see each version about 50% of the time
+  - By default, since two versions of `clerk` are running, Istio will use round-robin routing
   - Make a few orders and notice that it alternates between a simple output (`v1`) and a more informative output (`v2`)
 
 8. Define Destination Rules
