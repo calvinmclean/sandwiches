@@ -20,6 +20,8 @@ Note: these instructions are a modified version if [Istio's demo](https://istio.
   kubectl get svc,pods,deploy
   kubectl exec -it $(kubectl get pod -l app=menu -o jsonpath='{.items[0].metadata.name}') -c menu -- curl menu:8080/menu/show/
   # If the Menu prints, this confirms that Menu, Recipes, and Ingredients services are working
+  # If the Menu does not print, you should delete the Menu pod so it will restart:
+  kubectl delete pod <pod_name>
   ```
 
 5. Define the Ingress gateway for the Sandwiches application
@@ -42,4 +44,15 @@ Note: these instructions are a modified version if [Istio's demo](https://istio.
   curl http://${GATEWAY_URL}/menu/show/
   # Check in browser by echoing and clicking link
   echo http://${GATEWAY_URL}/clerk/order/
+  ```
+
+8. Define Destination Rules
+  ```shell
+  kubectl apply -f istio/destination-rule.yaml
+  ```
+
+9. Apply initial Virtual Service (_note_: now I am following [this guide](https://istio.io/docs/tasks/traffic-management/request-routing/))
+  ```shell
+  kubectl apply -f istio/virtual-service-all-v1.yaml
+  kubectl get vs
   ```
