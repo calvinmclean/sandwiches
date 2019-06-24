@@ -6,11 +6,25 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"text/template"
 )
 
 type SandwichRequest struct {
 	MenuItemId int
 	Extras     []int
+}
+
+type MenuList struct {
+	Items []MenuItem
+}
+
+type IngredientList struct {
+	Items []Ingredient
+}
+
+type OrderInfo struct {
+	Sandwiches MenuList
+	Extras     IngredientList
 }
 
 func main() {
@@ -20,17 +34,20 @@ func main() {
 }
 
 func SandwichForm(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "form.html")
+	info := OrderInfo{MenuList{GetMenuItem(0)}, IngredientList{GetIngredient(0)}}
+	tmpl, _ := template.ParseFiles("form.html")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	tmpl.Execute(w, info)
 }
 
 func PurchaseSandwich(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		sandwich := new(SandwichRequest)
 		sandwich.MenuItemId, _ = strconv.Atoi(r.FormValue("item"))
-		extrasStrings := strings.Split(r.FormValue("extras"), " ")
-		for _, extra := range extrasStrings {
-			id, _ := strconv.Atoi(extra)
-			sandwich.Extras = append(sandwich.Extras, id)
+		for k, v := range r.Form {
+			if id, err := strconv.Atoi(v[0]); err == nil && strings.Contains(k, "extras") {
+				sandwich.Extras = append(sandwich.Extras, id)
+			}
 		}
 		menuItem := GetMenuItem(sandwich.MenuItemId)[0]
 
