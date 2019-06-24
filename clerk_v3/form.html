@@ -1,0 +1,23 @@
+<form action="/clerk/purchase/" method="POST">
+  <h3>Sandwich ID:</h3>
+  {{if .Menu}}
+  <select name="item">
+    {{range $element := .Sandwiches.Items}}
+      <option value="{{$element.Id}}">{{$element.Name}} (${{$element.Price}})</option>
+    {{end}}
+  </select>
+  {{else}}
+  No menu available
+  {{end}}
+  <br><br>
+  <h3>Extra Ingredients IDs:</h3>
+  {{if .Ingredients}}
+  {{range $element := .Extras.Items}}
+  <input type="checkbox" name="extras[{{$element.Id}}]" value="{{$element.Id}}"> {{$element.Name}} (${{$element.Price}})<br>
+  {{end}}
+  {{else}}
+  No Ingredients available
+  {{end}}
+  <br><br>
+  <input type="submit" value="Submit">
+</form>

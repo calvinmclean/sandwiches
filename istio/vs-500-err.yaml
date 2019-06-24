@@ -1,0 +1,53 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: clerk
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - sandwiches-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /clerk
+    route:
+    - destination:
+        host: clerk
+        port:
+          number: 8080
+        subset: v3
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: menu-err
+spec:
+  hosts:
+  - menu
+  http:
+  - route:
+    - destination:
+        host: menu
+    fault:
+      abort:
+        percentage:
+          value: 100.0
+        httpStatus: 500
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: ingredients-err
+spec:
+  hosts:
+  - ingredients
+  http:
+  - route:
+    - destination:
+        host: ingredients
+    fault:
+      abort:
+        percentage:
+          value: 100.0
+        httpStatus: 500

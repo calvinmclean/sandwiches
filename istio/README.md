@@ -67,4 +67,10 @@ Note: these instructions are a modified version if [Istio's demo](https://istio.
   kubectl apply -f istio/vs-clerk-30-70.yaml
   # This will force Istio to only show v2
   kubectl apply -f istio/vs-clerk-v2.yaml
+  # This will force 500 status codes for all HTTP requests to 'menu' and 'ingredients'
+  # on the 'mesh' gateway which is the gateway for internal services. You will still
+  # be able to access the services through the browser but when 'clerk' makes requests
+  # to these services it will fail to get any results. This also reveals clerk:v3 which
+  # has a nice way of handling these errors
+  kubectl apply -f istio/vs-500-err.yaml
   ```
