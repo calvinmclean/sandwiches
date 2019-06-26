@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 	"strings"
@@ -23,69 +25,115 @@ type IngredientList struct {
 }
 
 type OrderInfo struct {
-	Sandwiches MenuList
-	Extras     IngredientList
+	Menu        bool
+	Ingredients bool
+	Sandwiches  MenuList
+	Extras      IngredientList
 }
 
 func main() {
-	http.HandleFunc("/clerk/order/", SandwichForm)
+	fmt.Println("Clerk started...")
 	http.HandleFunc("/clerk/purchase/", PurchaseSandwich)
-	http.ListenAndServe(":8080", nil)
+
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/clerk/order", SandwichForm).Methods("GET")
+	router.HandleFunc("/clerk/purchase", PurchaseSandwich).Methods("POST")
+	http.ListenAndServe(":8080", router)
 }
 
 func SandwichForm(w http.ResponseWriter, r *http.Request) {
-	info := OrderInfo{MenuList{GetMenuItem(0)}, IngredientList{GetIngredient(0)}}
+	menu, menuErr := GetMenu()
+	ingredients, ingErr := GetIngredients()
+	menuExist, ingExist := true, true
+	if menuErr != nil {
+		menuExist = false
+		fmt.Println(menuErr)
+	}
+	if ingErr != nil {
+		ingExist = false
+		fmt.Println(ingErr)
+	}
+	info := OrderInfo{menuExist, ingExist, MenuList{menu}, IngredientList{ingredients}}
 	tmpl, _ := template.ParseFiles("form.html")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	tmpl.Execute(w, info)
 }
 
 func PurchaseSandwich(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		sandwich := new(SandwichRequest)
-		sandwich.MenuItemId, _ = strconv.Atoi(r.FormValue("item"))
-		for k, v := range r.Form {
-			if id, err := strconv.Atoi(v[0]); err == nil && strings.Contains(k, "extras") {
-				sandwich.Extras = append(sandwich.Extras, id)
-			}
+	sandwich := new(SandwichRequest)
+	sandwich.MenuItemId, _ = strconv.Atoi(r.FormValue("item"))
+	for k, v := range r.Form {
+		if id, err := strconv.Atoi(v[0]); err == nil && strings.Contains(k, "extras") {
+			sandwich.Extras = append(sandwich.Extras, id)
 		}
-		menuItem := GetMenuItem(sandwich.MenuItemId)[0]
+	}
+	menuItem, _ := GetMenuItem(sandwich.MenuItemId)
 
-		fmt.Fprintf(w, "Price of your customized %s is $%.2f\n", menuItem.Name, CalculateSandwichPrice(*sandwich))
+	fmt.Fprintf(w, "Price of your customized %s is $%.2f\n", menuItem.Name, CalculateSandwichPrice(*sandwich))
+	if len(sandwich.Extras) > 0 {
 		fmt.Fprintf(w, "You added the following ingredients:\n")
 		for _, id := range sandwich.Extras {
-			ingredient := GetIngredient(id)[0]
+			ingredient, _ := GetIngredient(id)
 			fmt.Fprintf(w, "  * %s ($%.2f)\n", ingredient.Name, ingredient.Price)
 		}
-	} else {
-		fmt.Fprintf(w, "Only POST requests are allowed at this endpoint")
 	}
 }
 
 func CalculateSandwichPrice(sandwich SandwichRequest) float64 {
-	menuItem := GetMenuItem(sandwich.MenuItemId)[0]
+	menuItem, _ := GetMenuItem(sandwich.MenuItemId)
 	price := menuItem.Price
 
 	for _, id := range sandwich.Extras {
-		price += GetIngredient(id)[0].Price
+		ingredient, _ := GetIngredient(id)
+		price += ingredient.Price
 	}
 	return price
 }
 
-func GetIngredient(id int) []Ingredient {
-	var ingredient []Ingredient
+func GetIngredient(id int) (Ingredient, error) {
+	var ingredient Ingredient
 	var httpClient = &http.Client{}
-	r, _ := httpClient.Get(fmt.Sprintf("http://ingredients:8080/ingredients/%d", id))
+	r, err := httpClient.Get(fmt.Sprintf("http://ingredients:8080/ingredients/%d", id))
+	if err != nil || r.StatusCode != 200 {
+		return ingredient, errors.New(fmt.Sprintf("%d StatusCode from ingredients", r.StatusCode))
+	}
 	defer r.Body.Close()
 	json.NewDecoder(r.Body).Decode(&ingredient)
-	return ingredient
+	return ingredient, nil
 }
 
-func GetMenuItem(id int) []MenuItem {
-	var menuItem []MenuItem
+func GetIngredients() ([]Ingredient, error) {
+	var ingredients []Ingredient
 	var httpClient = &http.Client{}
-	r, _ := httpClient.Get(fmt.Sprintf("http://menu:8080/menu/%d", id))
+	r, err := httpClient.Get("http://ingredients:8080/ingredients")
+	if err != nil || r.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("%d StatusCode from ingredients", r.StatusCode))
+	}
+	defer r.Body.Close()
+	json.NewDecoder(r.Body).Decode(&ingredients)
+	return ingredients, nil
+}
+
+func GetMenuItem(id int) (MenuItem, error) {
+	var menuItem MenuItem
+	var httpClient = &http.Client{}
+	r, err := httpClient.Get(fmt.Sprintf("http://menu:8080/menu/%d", id))
+	if err != nil || r.StatusCode != 200 {
+		return menuItem, errors.New(fmt.Sprintf("%d StatusCode from menu", r.StatusCode))
+	}
 	defer r.Body.Close()
 	json.NewDecoder(r.Body).Decode(&menuItem)
-	return menuItem
+	return menuItem, nil
+}
+
+func GetMenu() ([]MenuItem, error) {
+	var menu []MenuItem
+	var httpClient = &http.Client{}
+	r, err := httpClient.Get("http://menu:8080/menu")
+	if err != nil || r.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("%d StatusCode from menu", r.StatusCode))
+	}
+	defer r.Body.Close()
+	json.NewDecoder(r.Body).Decode(&menu)
+	return menu, nil
 }

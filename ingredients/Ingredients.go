@@ -4,34 +4,80 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/gorilla/mux"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
-	"strings"
 )
 
-var IngredientsFromFile []Ingredient
+var Ingredients []Ingredient
 
 func main() {
-	IngredientsFromFile = GetIngredientsFromFile("ingredients.yaml")
-	http.HandleFunc("/ingredients/", GetIngredient)
-	http.ListenAndServe(":8080", nil)
+	Ingredients = GetIngredientsFromFile("ingredients.yaml")
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/ingredients", GetAllIngredients).Methods("GET")
+	router.HandleFunc("/ingredients", AddIngredient).Methods("POST")
+	router.HandleFunc("/ingredients/{id}", GetSingleIngredient).Methods("GET")
+	router.HandleFunc("/ingredients/{id}", DeleteIngredient).Methods("DELETE")
+	http.ListenAndServe(":8080", router)
 }
 
-func GetIngredient(w http.ResponseWriter, r *http.Request) {
-	id, _ := strconv.Atoi(strings.Split(r.URL.Path[1:], "/")[1])
-	var ingredients []Ingredient
-	if id == 0 {
-		ingredients = IngredientsFromFile
-	} else {
-		ingredient, _ := FindIngredient(id)
-		ingredients = []Ingredient{ingredient}
-	}
-	var ingredientJson []byte
-	ingredientJson, _ = json.Marshal(ingredients)
+func GetSingleIngredient(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	ingredientJson := GetIngredientJson(id)
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(ingredientJson)
+}
+
+func GetIngredientJson(id int) []byte {
+	ingredient, _ := FindIngredient(id)
+	ingredientJson, _ := json.Marshal(ingredient)
+	return ingredientJson
+}
+
+func GetAllIngredients(w http.ResponseWriter, r *http.Request) {
+	var ingredientsJson []byte
+	ingredientsJson, _ = json.Marshal(Ingredients)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(ingredientsJson)
+}
+
+func AddIngredient(w http.ResponseWriter, r *http.Request) {
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var ingredient Ingredient
+	json.Unmarshal(reqBody, &ingredient)
+	ingredient.Id = len(Ingredients) + 1
+	Ingredients = append(Ingredients, ingredient)
+	WriteIngredientsToFile(Ingredients, "ingredients.yaml")
+	UpdateMenu()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(GetIngredientJson(ingredient.Id))
+}
+
+func UpdateMenu() {
+	var httpClient = &http.Client{}
+	r, _ := httpClient.PostForm("http://menu:8080/menu", url.Values{})
+	defer r.Body.Close()
+}
+
+func DeleteIngredient(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	for i, ingredient := range Ingredients {
+		if ingredient.Id == id {
+			Ingredients = append(Ingredients[:i], Ingredients[i+1:]...)
+		}
+	}
+	WriteIngredientsToFile(Ingredients, "ingredients.yaml")
+}
+
+func WriteIngredientsToFile(ingredients []Ingredient, fname string) {
+	var ingredientsData []byte
+	ingredientsData, _ = yaml.Marshal(ingredients)
+	ioutil.WriteFile(fname, ingredientsData, 0644)
 }
 
 func GetIngredientsFromFile(fname string) []Ingredient {
@@ -45,24 +91,16 @@ func GetIngredientsFromFile(fname string) []Ingredient {
 	byteValue, _ := ioutil.ReadAll(file)
 	var ingredients []Ingredient
 
-	ext := strings.Split(fname, ".")[1]
-	if ext == "yml" || ext == "yaml" {
-		yaml.Unmarshal(byteValue, &ingredients)
-	} else if ext == "json" {
-		json.Unmarshal(byteValue, &ingredients)
-	} else {
-		fmt.Println("Cannot parse file without JSON or YAML extension")
-		os.Exit(2)
-	}
+	yaml.Unmarshal(byteValue, &ingredients)
 	return ingredients
 }
 
 func FindIngredient(id int) (Ingredient, error) {
-	if IngredientsFromFile == nil {
-		IngredientsFromFile = GetIngredientsFromFile("ingredients.yaml")
+	if Ingredients == nil {
+		Ingredients = GetIngredientsFromFile("ingredients.yaml")
 	}
 
-	for _, ingredient := range IngredientsFromFile {
+	for _, ingredient := range Ingredients {
 		if ingredient.Id == id {
 			return ingredient, nil
 		}

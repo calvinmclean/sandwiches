@@ -4,34 +4,81 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/gorilla/mux"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
-	"strings"
 )
 
-var RecipesFromFile []Recipe
+var Recipes []Recipe
 
 func main() {
-	RecipesFromFile = GetRecipesFromFile("recipes.yaml")
-	http.HandleFunc("/recipes/", GetRecipe)
-	http.ListenAndServe(":8080", nil)
+	Recipes = GetRecipesFromFile("recipes.yaml")
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/recipes", GetAllRecipes).Methods("GET")
+	router.HandleFunc("/recipes", AddRecipe).Methods("POST")
+	router.HandleFunc("/recipes/{id}", GetSingleRecipe).Methods("GET")
+	router.HandleFunc("/recipes/{id}", DeleteRecipe).Methods("DELETE")
+	http.ListenAndServe(":8080", router)
 }
 
-func GetRecipe(w http.ResponseWriter, r *http.Request) {
-	id, _ := strconv.Atoi(strings.Split(r.URL.Path[1:], "/")[1])
-	var recipes []Recipe
-	if id == 0 {
-		recipes = RecipesFromFile
-	} else {
-		recipe, _ := FindRecipe(id)
-		recipes = []Recipe{recipe}
-	}
-	var recipeJson []byte
-	recipeJson, _ = json.Marshal(recipes)
+func GetSingleRecipe(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	recipeJson := GetRecipeJson(id)
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(recipeJson)
+}
+
+func GetRecipeJson(id int) []byte {
+	recipe, _ := FindRecipe(id)
+	recipeJson, _ := json.Marshal(recipe)
+	return recipeJson
+}
+
+func GetAllRecipes(w http.ResponseWriter, r *http.Request) {
+	var recipeJson []byte
+	recipeJson, _ = json.Marshal(Recipes)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(recipeJson)
+}
+
+func AddRecipe(w http.ResponseWriter, r *http.Request) {
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var recipe Recipe
+	json.Unmarshal(reqBody, &recipe)
+	recipe.Id = len(Recipes) + 1
+	Recipes = append(Recipes, recipe)
+	WriteRecipesToFile(Recipes, "recipes.yaml")
+	UpdateMenu()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(GetRecipeJson(recipe.Id))
+}
+
+func DeleteRecipe(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	for i, recipe := range Recipes {
+		if recipe.Id == id {
+			Recipes = append(Recipes[:i], Recipes[i+1:]...)
+		}
+	}
+	WriteRecipesToFile(Recipes, "recipes.yaml")
+	UpdateMenu()
+}
+
+func UpdateMenu() {
+	var httpClient = &http.Client{}
+	r, _ := httpClient.PostForm("http://menu:8080/menu", url.Values{})
+	defer r.Body.Close()
+}
+
+func WriteRecipesToFile(recipes []Recipe, fname string) {
+	var recipesData []byte
+	recipesData, _ = yaml.Marshal(recipes)
+	ioutil.WriteFile(fname, recipesData, 0644)
 }
 
 func GetRecipesFromFile(fname string) []Recipe {
@@ -44,25 +91,16 @@ func GetRecipesFromFile(fname string) []Recipe {
 
 	byteValue, _ := ioutil.ReadAll(file)
 	var recipes []Recipe
-
-	ext := strings.Split(fname, ".")[1]
-	if ext == "yml" || ext == "yaml" {
-		yaml.Unmarshal(byteValue, &recipes)
-	} else if ext == "json" {
-		json.Unmarshal(byteValue, &recipes)
-	} else {
-		fmt.Println("Cannot parse file without JSON or YAML extension")
-		os.Exit(2)
-	}
+	yaml.Unmarshal(byteValue, &recipes)
 	return recipes
 }
 
 func FindRecipe(id int) (Recipe, error) {
-	if RecipesFromFile == nil {
-		RecipesFromFile = GetRecipesFromFile("recipes.yaml")
+	if Recipes == nil {
+		Recipes = GetRecipesFromFile("recipes.yaml")
 	}
 
-	for _, recipe := range RecipesFromFile {
+	for _, recipe := range Recipes {
 		if recipe.Id == id {
 			return recipe, nil
 		}

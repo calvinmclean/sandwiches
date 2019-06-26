@@ -37,7 +37,6 @@ spec:
       containers:
       - name: ingredients
         image: calvinmclean/sandwiches-ingredients:v1
-        image: calvinmclean/sandwiches-clerk:v3
         ports:
         - containerPort: 8080
 ---
@@ -189,32 +188,6 @@ spec:
       containers:
       - name: clerk
         image: calvinmclean/sandwiches-clerk:v2
-        ports:
-        - containerPort: 8080
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: clerk-v3
-  labels:
-    app: clerk
-    version: v3
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: clerk
-      version: v3
-  template:
-    metadata:
-      labels:
-        app: clerk
-        version: v3
-    spec:
-      containers:
-      - name: clerk
-        image: calvinmclean/sandwiches-clerk:v3
-        imagePullPolicy: Always
         ports:
         - containerPort: 8080
 ---

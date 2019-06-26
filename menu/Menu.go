@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,22 +14,34 @@ var Menu []MenuItem
 
 func main() {
 	Menu = BuildMenu()
-	http.HandleFunc("/menu/", GetMenu)
-	http.HandleFunc("/menu/show/", ShowMenu)
-	http.ListenAndServe(":8080", nil)
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/menu", GetAllMenuItems).Methods("GET")
+	router.HandleFunc("/menu/show", ShowMenu).Methods("GET")
+	router.HandleFunc("/menu/{id}", GetSingleMenuItem).Methods("GET")
+	router.HandleFunc("/menu", UpdateMenu).Methods("POST")
+	http.ListenAndServe(":8080", router)
 }
 
-func GetMenu(w http.ResponseWriter, r *http.Request) {
-	id, _ := strconv.Atoi(strings.Split(r.URL.Path[1:], "/")[1])
-	var menu []MenuItem
-	if id == 0 {
-		menu = Menu
-	} else {
-		menuItem, _ := FindMenuItem(id)
-		menu = []MenuItem{menuItem}
-	}
+func GetSingleMenuItem(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	menuItem, _ := FindMenuItem(id)
+	menuItemJson, _ := json.Marshal(menuItem)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(menuItemJson)
+}
+
+func GetAllMenuItems(w http.ResponseWriter, r *http.Request) {
 	var menuJson []byte
-	menuJson, _ = json.Marshal(menu)
+	menuJson, _ = json.Marshal(Menu)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(menuJson)
+}
+
+func UpdateMenu(w http.ResponseWriter, r *http.Request) {
+	Menu = BuildMenu()
+	var menuJson []byte
+	menuJson, _ = json.Marshal(Menu)
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(menuJson)
 }
 
@@ -50,7 +63,7 @@ func GetMenuString() []string {
 }
 
 func BuildMenu() []MenuItem {
-	recipes := GetRecipe(0) // Get all recipes
+	recipes := GetRecipes() // Get all recipes
 	menu := make([]MenuItem, len(recipes))
 
 	// Add prices and names to the MenuItems
@@ -76,13 +89,13 @@ func CalcRecipePrice(recipe Recipe) float64 {
 func CalcPriceFromSlice(items []int) float64 {
 	price := 0.00
 	for _, item := range items {
-		price += GetIngredient(item)[0].Price
+		price += GetIngredient(item).Price
 	}
 	return price
 }
 
-func GetIngredient(id int) []Ingredient {
-	var ingredient []Ingredient
+func GetIngredient(id int) Ingredient {
+	var ingredient Ingredient
 	var httpClient = &http.Client{}
 	r, _ := httpClient.Get(fmt.Sprintf("http://ingredients:8080/ingredients/%d", id))
 	defer r.Body.Close()
@@ -90,13 +103,13 @@ func GetIngredient(id int) []Ingredient {
 	return ingredient
 }
 
-func GetRecipe(id int) []Recipe {
-	var recipe []Recipe
+func GetRecipes() []Recipe {
+	var recipes []Recipe
 	var httpClient = &http.Client{}
-	r, _ := httpClient.Get(fmt.Sprintf("http://recipes:8080/recipes/%d", id))
+	r, _ := httpClient.Get("http://recipes:8080/recipes")
 	defer r.Body.Close()
-	json.NewDecoder(r.Body).Decode(&recipe)
-	return recipe
+	json.NewDecoder(r.Body).Decode(&recipes)
+	return recipes
 }
 
 func FindMenuItem(id int) (MenuItem, error) {

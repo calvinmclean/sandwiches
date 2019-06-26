@@ -4,29 +4,24 @@ version: '3'
 services:
 
   recipes:
-    build:
-      context: './recipes'
+    build: './recipes'
 
   ingredients:
-    build:
-      context: './ingredients'
+    build: './ingredients'
 
   menu:
-    build:
-      context: './menu'
+    build: './menu'
     depends_on:
       - 'recipes'
       - 'ingredients'
 
   clerk:
-    build:
-      context: './clerk'
+    build: './clerk'
     depends_on:
       - 'menu'
 
   nginx:
-    build:
-      context: './nginx'
+    build: './nginx'
     ports:
       - '80:80'
     depends_on:

@@ -18,7 +18,7 @@ Note: these instructions are a modified version if [Istio's demo](https://istio.
   ```shell
   kubectl apply -f istio/sandwiches.yaml
   kubectl get svc,pods,deploy
-  kubectl exec -it $(kubectl get pod -l app=menu -o jsonpath='{.items[0].metadata.name}') -c menu -- curl menu:8080/menu/show/
+  kubectl exec -it $(kubectl get pod -l app=menu -o jsonpath='{.items[0].metadata.name}') -c menu -- curl menu:8080/menu/show
   # If the Menu prints, this confirms that Menu, Recipes, and Ingredients services are working
   # If the Menu does not print, you should delete the Menu pod so it will restart:
   kubectl delete pod <pod_name>
@@ -41,9 +41,9 @@ Note: these instructions are a modified version if [Istio's demo](https://istio.
 
 7. Confirm that the app is running by hitting a few endpoints
   ```shell
-  curl http://${GATEWAY_URL}/menu/show/
+  curl http://${GATEWAY_URL}/menu/show
   # Check in browser by echoing and clicking link
-  echo http://${GATEWAY_URL}/clerk/order/
+  echo http://${GATEWAY_URL}/clerk/order
   ```
   - By default, since two versions of `clerk` are running, Istio will use round-robin routing
   - Make a few orders and notice that it alternates between a simple output (`v1`) and a more informative output (`v2`)
@@ -70,7 +70,6 @@ Note: these instructions are a modified version if [Istio's demo](https://istio.
   # This will force 500 status codes for all HTTP requests to 'menu' and 'ingredients'
   # on the 'mesh' gateway which is the gateway for internal services. You will still
   # be able to access the services through the browser but when 'clerk' makes requests
-  # to these services it will fail to get any results. This also reveals clerk:v3 which
-  # has a nice way of handling these errors
+  # to these services it will fail to get any results
   kubectl apply -f istio/vs-500-err.yaml
   ```
