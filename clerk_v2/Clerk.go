@@ -16,19 +16,11 @@ type SandwichRequest struct {
 	Extras     []int
 }
 
-type MenuList struct {
-	Items []MenuItem
-}
-
-type IngredientList struct {
-	Items []Ingredient
-}
-
 type OrderInfo struct {
 	Menu        bool
 	Ingredients bool
-	Sandwiches  MenuList
-	Extras      IngredientList
+	Sandwiches  []MenuItem
+	Extras      []Ingredient
 }
 
 func main() {
@@ -53,7 +45,7 @@ func SandwichForm(w http.ResponseWriter, r *http.Request) {
 		ingExist = false
 		fmt.Println(ingErr)
 	}
-	info := OrderInfo{menuExist, ingExist, MenuList{menu}, IngredientList{ingredients}}
+	info := OrderInfo{menuExist, ingExist, menu, ingredients}
 	tmpl, _ := template.ParseFiles("form.html")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	tmpl.Execute(w, info)
