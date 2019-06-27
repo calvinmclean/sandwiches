@@ -63,6 +63,37 @@ func (m *IngredientRequest) GetId() int32 {
 	return 0
 }
 
+type AllIngredientsRequest struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AllIngredientsRequest) Reset()         { *m = AllIngredientsRequest{} }
+func (m *AllIngredientsRequest) String() string { return proto.CompactTextString(m) }
+func (*AllIngredientsRequest) ProtoMessage()    {}
+func (*AllIngredientsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d271faa439776c6e, []int{1}
+}
+
+func (m *AllIngredientsRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AllIngredientsRequest.Unmarshal(m, b)
+}
+func (m *AllIngredientsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AllIngredientsRequest.Marshal(b, m, deterministic)
+}
+func (m *AllIngredientsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AllIngredientsRequest.Merge(m, src)
+}
+func (m *AllIngredientsRequest) XXX_Size() int {
+	return xxx_messageInfo_AllIngredientsRequest.Size(m)
+}
+func (m *AllIngredientsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AllIngredientsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AllIngredientsRequest proto.InternalMessageInfo
+
 type Ingredient struct {
 	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Price                float64  `protobuf:"fixed64,2,opt,name=price,proto3" json:"price,omitempty"`
@@ -77,7 +108,7 @@ func (m *Ingredient) Reset()         { *m = Ingredient{} }
 func (m *Ingredient) String() string { return proto.CompactTextString(m) }
 func (*Ingredient) ProtoMessage()    {}
 func (*Ingredient) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d271faa439776c6e, []int{1}
+	return fileDescriptor_d271faa439776c6e, []int{2}
 }
 
 func (m *Ingredient) XXX_Unmarshal(b []byte) error {
@@ -126,6 +157,45 @@ func (m *Ingredient) GetId() int32 {
 	return 0
 }
 
+type AllIngredients struct {
+	Ingredients          []*Ingredient `protobuf:"bytes,1,rep,name=ingredients,proto3" json:"ingredients,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *AllIngredients) Reset()         { *m = AllIngredients{} }
+func (m *AllIngredients) String() string { return proto.CompactTextString(m) }
+func (*AllIngredients) ProtoMessage()    {}
+func (*AllIngredients) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d271faa439776c6e, []int{3}
+}
+
+func (m *AllIngredients) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AllIngredients.Unmarshal(m, b)
+}
+func (m *AllIngredients) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AllIngredients.Marshal(b, m, deterministic)
+}
+func (m *AllIngredients) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AllIngredients.Merge(m, src)
+}
+func (m *AllIngredients) XXX_Size() int {
+	return xxx_messageInfo_AllIngredients.Size(m)
+}
+func (m *AllIngredients) XXX_DiscardUnknown() {
+	xxx_messageInfo_AllIngredients.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AllIngredients proto.InternalMessageInfo
+
+func (m *AllIngredients) GetIngredients() []*Ingredient {
+	if m != nil {
+		return m.Ingredients
+	}
+	return nil
+}
+
 type RecipeRequest struct {
 	Id                   int32    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -137,7 +207,7 @@ func (m *RecipeRequest) Reset()         { *m = RecipeRequest{} }
 func (m *RecipeRequest) String() string { return proto.CompactTextString(m) }
 func (*RecipeRequest) ProtoMessage()    {}
 func (*RecipeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d271faa439776c6e, []int{2}
+	return fileDescriptor_d271faa439776c6e, []int{4}
 }
 
 func (m *RecipeRequest) XXX_Unmarshal(b []byte) error {
@@ -165,6 +235,37 @@ func (m *RecipeRequest) GetId() int32 {
 	return 0
 }
 
+type AllRecipesRequest struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AllRecipesRequest) Reset()         { *m = AllRecipesRequest{} }
+func (m *AllRecipesRequest) String() string { return proto.CompactTextString(m) }
+func (*AllRecipesRequest) ProtoMessage()    {}
+func (*AllRecipesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d271faa439776c6e, []int{5}
+}
+
+func (m *AllRecipesRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AllRecipesRequest.Unmarshal(m, b)
+}
+func (m *AllRecipesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AllRecipesRequest.Marshal(b, m, deterministic)
+}
+func (m *AllRecipesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AllRecipesRequest.Merge(m, src)
+}
+func (m *AllRecipesRequest) XXX_Size() int {
+	return xxx_messageInfo_AllRecipesRequest.Size(m)
+}
+func (m *AllRecipesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AllRecipesRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AllRecipesRequest proto.InternalMessageInfo
+
 type Recipe struct {
 	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Id                   int32    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
@@ -181,7 +282,7 @@ func (m *Recipe) Reset()         { *m = Recipe{} }
 func (m *Recipe) String() string { return proto.CompactTextString(m) }
 func (*Recipe) ProtoMessage()    {}
 func (*Recipe) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d271faa439776c6e, []int{3}
+	return fileDescriptor_d271faa439776c6e, []int{6}
 }
 
 func (m *Recipe) XXX_Unmarshal(b []byte) error {
@@ -244,35 +345,84 @@ func (m *Recipe) GetToppings() []int32 {
 	return nil
 }
 
+type AllRecipes struct {
+	Recipes              []*Recipe `protobuf:"bytes,1,rep,name=recipes,proto3" json:"recipes,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
+	XXX_unrecognized     []byte    `json:"-"`
+	XXX_sizecache        int32     `json:"-"`
+}
+
+func (m *AllRecipes) Reset()         { *m = AllRecipes{} }
+func (m *AllRecipes) String() string { return proto.CompactTextString(m) }
+func (*AllRecipes) ProtoMessage()    {}
+func (*AllRecipes) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d271faa439776c6e, []int{7}
+}
+
+func (m *AllRecipes) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AllRecipes.Unmarshal(m, b)
+}
+func (m *AllRecipes) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AllRecipes.Marshal(b, m, deterministic)
+}
+func (m *AllRecipes) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AllRecipes.Merge(m, src)
+}
+func (m *AllRecipes) XXX_Size() int {
+	return xxx_messageInfo_AllRecipes.Size(m)
+}
+func (m *AllRecipes) XXX_DiscardUnknown() {
+	xxx_messageInfo_AllRecipes.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AllRecipes proto.InternalMessageInfo
+
+func (m *AllRecipes) GetRecipes() []*Recipe {
+	if m != nil {
+		return m.Recipes
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*IngredientRequest)(nil), "sandwiches.IngredientRequest")
+	proto.RegisterType((*AllIngredientsRequest)(nil), "sandwiches.AllIngredientsRequest")
 	proto.RegisterType((*Ingredient)(nil), "sandwiches.Ingredient")
+	proto.RegisterType((*AllIngredients)(nil), "sandwiches.AllIngredients")
 	proto.RegisterType((*RecipeRequest)(nil), "sandwiches.RecipeRequest")
+	proto.RegisterType((*AllRecipesRequest)(nil), "sandwiches.AllRecipesRequest")
 	proto.RegisterType((*Recipe)(nil), "sandwiches.Recipe")
+	proto.RegisterType((*AllRecipes)(nil), "sandwiches.AllRecipes")
 }
 
 func init() { proto.RegisterFile("sandwiches.proto", fileDescriptor_d271faa439776c6e) }
 
 var fileDescriptor_d271faa439776c6e = []byte{
-	// 282 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x91, 0x3f, 0x4f, 0xf3, 0x30,
-	0x10, 0xc6, 0xeb, 0x34, 0x4e, 0xdf, 0xde, 0xab, 0xa2, 0x72, 0x42, 0xc8, 0x54, 0xfc, 0x89, 0xc2,
-	0x92, 0xa9, 0x43, 0x59, 0x99, 0x58, 0x02, 0xab, 0x17, 0x24, 0xb6, 0x34, 0x39, 0xb5, 0x1e, 0xea,
-	0x98, 0xd8, 0x08, 0xf1, 0x55, 0xf8, 0xb4, 0x28, 0x71, 0x9b, 0x04, 0xb5, 0x6c, 0x77, 0xcf, 0xf3,
-	0xf8, 0xce, 0xfe, 0x19, 0xe6, 0x36, 0xd7, 0xe5, 0xa7, 0x2a, 0xb6, 0x64, 0x97, 0xa6, 0xae, 0x5c,
-	0x85, 0xd0, 0x2b, 0xc9, 0x3d, 0x9c, 0xbf, 0xe8, 0x4d, 0x4d, 0xa5, 0x22, 0xed, 0x24, 0xbd, 0x7f,
-	0x90, 0x75, 0x78, 0x06, 0x81, 0x2a, 0x05, 0x8b, 0x59, 0xca, 0x65, 0xa0, 0xca, 0xe4, 0x0d, 0xa0,
-	0x0f, 0x21, 0x42, 0xa8, 0xf3, 0x1d, 0xb5, 0xfe, 0x54, 0xb6, 0x35, 0x5e, 0x00, 0x37, 0xb5, 0x2a,
-	0x48, 0x04, 0x31, 0x4b, 0x99, 0xf4, 0x4d, 0x93, 0x74, 0x5f, 0x86, 0xc4, 0xd8, 0x27, 0x9b, 0x7a,
-	0x3f, 0x3b, 0xec, 0x66, 0xdf, 0xc1, 0x4c, 0x52, 0xa1, 0x0c, 0xfd, 0xb5, 0xfc, 0x9b, 0x41, 0xe4,
-	0x13, 0x27, 0x37, 0xfb, 0x78, 0x70, 0x88, 0x37, 0x37, 0x59, 0xd7, 0x94, 0x97, 0xed, 0x52, 0x2e,
-	0x7d, 0x83, 0x02, 0xf8, 0x8e, 0x72, 0x67, 0x45, 0x18, 0x8f, 0x53, 0xfe, 0x14, 0xcc, 0x99, 0xf4,
-	0x02, 0x5e, 0xc3, 0xa4, 0xd8, 0x12, 0x59, 0xb2, 0x82, 0x77, 0xde, 0x41, 0xc2, 0x5b, 0xf8, 0xe7,
-	0x2a, 0x63, 0x94, 0xde, 0x58, 0x11, 0x75, 0x76, 0xa7, 0xad, 0x5e, 0xe1, 0x7f, 0x4f, 0xc6, 0xe2,
-	0x33, 0xcc, 0x32, 0x72, 0x03, 0x56, 0x37, 0xcb, 0x01, 0xfd, 0x23, 0xd0, 0x8b, 0xcb, 0xd3, 0x76,
-	0x32, 0x5a, 0x65, 0x30, 0xf1, 0x8f, 0xb6, 0xf8, 0x08, 0xd3, 0x8c, 0xdc, 0x1e, 0xc1, 0xd5, 0xf0,
-	0xc4, 0x2f, 0x70, 0x0b, 0x3c, 0xb6, 0x92, 0xd1, 0x3a, 0x6a, 0xff, 0xfc, 0xe1, 0x27, 0x00, 0x00,
-	0xff, 0xff, 0xf7, 0x4e, 0x1f, 0xe7, 0x07, 0x02, 0x00, 0x00,
+	// 383 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x93, 0xcf, 0x6e, 0xe2, 0x30,
+	0x10, 0xc6, 0xe3, 0x40, 0x60, 0x19, 0x04, 0x02, 0xef, 0x3f, 0x2f, 0x5a, 0x76, 0xb3, 0xde, 0x4b,
+	0x0e, 0x2b, 0x0e, 0xec, 0xa5, 0xaa, 0x7a, 0xa1, 0x17, 0xda, 0x1e, 0xa3, 0x9e, 0x7a, 0x0b, 0xc9,
+	0x08, 0x2c, 0x85, 0x90, 0xc6, 0xae, 0xaa, 0x3e, 0x46, 0xaf, 0x7d, 0x87, 0xbe, 0x63, 0x45, 0x9c,
+	0x3f, 0x06, 0x25, 0x37, 0xfb, 0x9b, 0x8f, 0x19, 0x7e, 0xdf, 0x38, 0x30, 0x91, 0x41, 0x12, 0x3d,
+	0x8b, 0x70, 0x87, 0x72, 0x91, 0x66, 0x07, 0x75, 0xa0, 0x50, 0x2b, 0xfc, 0x2f, 0x4c, 0x6f, 0x93,
+	0x6d, 0x86, 0x91, 0xc0, 0x44, 0xf9, 0xf8, 0xf8, 0x84, 0x52, 0xd1, 0x31, 0xd8, 0x22, 0x62, 0xc4,
+	0x25, 0x9e, 0xe3, 0xdb, 0x22, 0xe2, 0xdf, 0xe1, 0xeb, 0x2a, 0x8e, 0x6b, 0x9f, 0x2c, 0x8c, 0xfc,
+	0x01, 0xa0, 0x56, 0x29, 0x85, 0x6e, 0x12, 0xec, 0x31, 0xff, 0xe1, 0xc0, 0xcf, 0xcf, 0xf4, 0x0b,
+	0x38, 0x69, 0x26, 0x42, 0x64, 0xb6, 0x4b, 0x3c, 0xe2, 0xeb, 0xcb, 0xd1, 0xa9, 0x5e, 0x52, 0x64,
+	0x1d, 0xed, 0x3c, 0x9e, 0x8b, 0xa1, 0xdd, 0x6a, 0xe8, 0x1d, 0x8c, 0x4f, 0x87, 0xd2, 0x0b, 0x18,
+	0x8a, 0xfa, 0xca, 0x88, 0xdb, 0xf1, 0x86, 0xcb, 0x6f, 0x0b, 0x83, 0xcf, 0x40, 0x31, 0xad, 0xfc,
+	0x37, 0x8c, 0x7c, 0x0c, 0x45, 0x8a, 0x6d, 0x84, 0x9f, 0x61, 0xba, 0x8a, 0x63, 0xed, 0xa9, 0xe8,
+	0xde, 0x08, 0xf4, 0xb4, 0xd4, 0x88, 0xa6, 0x7b, 0xd8, 0x65, 0x8f, 0x23, 0xea, 0x26, 0xc3, 0x20,
+	0xca, 0xa9, 0x1c, 0x5f, 0x5f, 0x28, 0x03, 0x67, 0x8f, 0x81, 0x92, 0xac, 0xeb, 0x76, 0x3c, 0xe7,
+	0xda, 0x9e, 0x10, 0x5f, 0x0b, 0xf4, 0x27, 0xf4, 0xc3, 0x1d, 0xa2, 0x44, 0xc9, 0x9c, 0xaa, 0x56,
+	0x4a, 0xf4, 0x17, 0x7c, 0x52, 0x87, 0x34, 0x15, 0xc9, 0x56, 0xb2, 0x5e, 0x55, 0xae, 0x34, 0x7e,
+	0x09, 0x50, 0xff, 0x63, 0xfa, 0x0f, 0xfa, 0x99, 0x3e, 0x16, 0xb1, 0x50, 0x33, 0x96, 0x82, 0xbd,
+	0xb4, 0x2c, 0xdf, 0x09, 0x0c, 0xcd, 0x60, 0x6f, 0x60, 0xb4, 0x46, 0x65, 0x6c, 0x72, 0xde, 0x12,
+	0xaa, 0x0e, 0x66, 0xd6, 0x92, 0x39, 0xb7, 0xe8, 0x3d, 0x4c, 0xd7, 0xa8, 0xce, 0xf6, 0xf6, 0xc7,
+	0xb4, 0x37, 0x3e, 0xa4, 0xd9, 0xac, 0xdd, 0xc2, 0xad, 0xe5, 0x2b, 0x81, 0x7e, 0x49, 0x7a, 0x05,
+	0x83, 0x35, 0xaa, 0x62, 0x2d, 0x3f, 0x1a, 0x28, 0x8b, 0x8e, 0x0d, 0x01, 0x70, 0xab, 0x20, 0x35,
+	0x82, 0x9b, 0x9f, 0x0d, 0x3e, 0x7d, 0x02, 0xa7, 0xa4, 0x75, 0x99, 0x5b, 0x9b, 0x5e, 0xfe, 0x2d,
+	0xfd, 0xff, 0x08, 0x00, 0x00, 0xff, 0xff, 0x94, 0xb8, 0x80, 0x12, 0x5f, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -288,6 +438,7 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type IngredientsClient interface {
 	GetIngredient(ctx context.Context, in *IngredientRequest, opts ...grpc.CallOption) (*Ingredient, error)
+	GetAllIngredients(ctx context.Context, in *AllIngredientsRequest, opts ...grpc.CallOption) (*AllIngredients, error)
 }
 
 type ingredientsClient struct {
@@ -307,9 +458,19 @@ func (c *ingredientsClient) GetIngredient(ctx context.Context, in *IngredientReq
 	return out, nil
 }
 
+func (c *ingredientsClient) GetAllIngredients(ctx context.Context, in *AllIngredientsRequest, opts ...grpc.CallOption) (*AllIngredients, error) {
+	out := new(AllIngredients)
+	err := c.cc.Invoke(ctx, "/sandwiches.Ingredients/GetAllIngredients", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // IngredientsServer is the server API for Ingredients service.
 type IngredientsServer interface {
 	GetIngredient(context.Context, *IngredientRequest) (*Ingredient, error)
+	GetAllIngredients(context.Context, *AllIngredientsRequest) (*AllIngredients, error)
 }
 
 // UnimplementedIngredientsServer can be embedded to have forward compatible implementations.
@@ -318,6 +479,9 @@ type UnimplementedIngredientsServer struct {
 
 func (*UnimplementedIngredientsServer) GetIngredient(ctx context.Context, req *IngredientRequest) (*Ingredient, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetIngredient not implemented")
+}
+func (*UnimplementedIngredientsServer) GetAllIngredients(ctx context.Context, req *AllIngredientsRequest) (*AllIngredients, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllIngredients not implemented")
 }
 
 func RegisterIngredientsServer(s *grpc.Server, srv IngredientsServer) {
@@ -342,6 +506,24 @@ func _Ingredients_GetIngredient_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Ingredients_GetAllIngredients_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AllIngredientsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IngredientsServer).GetAllIngredients(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sandwiches.Ingredients/GetAllIngredients",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IngredientsServer).GetAllIngredients(ctx, req.(*AllIngredientsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Ingredients_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sandwiches.Ingredients",
 	HandlerType: (*IngredientsServer)(nil),
@@ -349,6 +531,10 @@ var _Ingredients_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetIngredient",
 			Handler:    _Ingredients_GetIngredient_Handler,
+		},
+		{
+			MethodName: "GetAllIngredients",
+			Handler:    _Ingredients_GetAllIngredients_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -360,6 +546,7 @@ var _Ingredients_serviceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type RecipesClient interface {
 	GetRecipe(ctx context.Context, in *RecipeRequest, opts ...grpc.CallOption) (*Recipe, error)
+	GetAllRecipes(ctx context.Context, in *AllRecipesRequest, opts ...grpc.CallOption) (*AllRecipes, error)
 }
 
 type recipesClient struct {
@@ -379,9 +566,19 @@ func (c *recipesClient) GetRecipe(ctx context.Context, in *RecipeRequest, opts .
 	return out, nil
 }
 
+func (c *recipesClient) GetAllRecipes(ctx context.Context, in *AllRecipesRequest, opts ...grpc.CallOption) (*AllRecipes, error) {
+	out := new(AllRecipes)
+	err := c.cc.Invoke(ctx, "/sandwiches.Recipes/GetAllRecipes", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RecipesServer is the server API for Recipes service.
 type RecipesServer interface {
 	GetRecipe(context.Context, *RecipeRequest) (*Recipe, error)
+	GetAllRecipes(context.Context, *AllRecipesRequest) (*AllRecipes, error)
 }
 
 // UnimplementedRecipesServer can be embedded to have forward compatible implementations.
@@ -390,6 +587,9 @@ type UnimplementedRecipesServer struct {
 
 func (*UnimplementedRecipesServer) GetRecipe(ctx context.Context, req *RecipeRequest) (*Recipe, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRecipe not implemented")
+}
+func (*UnimplementedRecipesServer) GetAllRecipes(ctx context.Context, req *AllRecipesRequest) (*AllRecipes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllRecipes not implemented")
 }
 
 func RegisterRecipesServer(s *grpc.Server, srv RecipesServer) {
@@ -414,6 +614,24 @@ func _Recipes_GetRecipe_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Recipes_GetAllRecipes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AllRecipesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecipesServer).GetAllRecipes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sandwiches.Recipes/GetAllRecipes",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecipesServer).GetAllRecipes(ctx, req.(*AllRecipesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Recipes_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sandwiches.Recipes",
 	HandlerType: (*RecipesServer)(nil),
@@ -421,6 +639,10 @@ var _Recipes_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRecipe",
 			Handler:    _Recipes_GetRecipe_Handler,
+		},
+		{
+			MethodName: "GetAllRecipes",
+			Handler:    _Recipes_GetAllRecipes_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

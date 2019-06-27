@@ -16,16 +16,6 @@ const (
 // server is used to implement helloworld.GreeterServer.
 type server struct{}
 
-// - name: BLT
-//   id: 1
-//   bread: 1
-//   meats: [2]
-//   cheeses: []
-//   toppings:
-//     - 3
-//     - 4
-//     - 5
-
 // Recipe represents the name and collection of ingredients for a sandwich
 type Recipe struct {
 	Name     string  `json:"name" yaml:"name"`
@@ -62,6 +52,11 @@ func (s *server) GetRecipe(ctx context.Context, in *pb.RecipeRequest) (*pb.Recip
 		Cheeses:  recipe.Cheeses,
 		Toppings: recipe.Toppings,
 	}, nil
+}
+
+func (s *server) GetAllRecipes(ctx context.Context, in *pb.AllRecipesRequest) (*pb.AllRecipes, error) {
+	log.Printf("Received: %d", in.Id)
+	return &pb.AllRecipes{allRecipes}, nil
 }
 
 // FindRecipe returns a Recipe from allRecipes based on ID
