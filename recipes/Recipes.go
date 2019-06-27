@@ -1,113 +1,71 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
 	"errors"
-	"fmt"
-	"github.com/gorilla/mux"
-	"gopkg.in/yaml.v2"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"os"
-	"strconv"
+	pb "github.com/calvinmclean/sandwiches/sandwiches"
+	"google.golang.org/grpc"
+	"log"
+	"net"
 )
+
+const (
+	port = ":50052"
+)
+
+// server is used to implement helloworld.GreeterServer.
+type server struct{}
+
+// - name: BLT
+//   id: 1
+//   bread: 1
+//   meats: [2]
+//   cheeses: []
+//   toppings:
+//     - 3
+//     - 4
+//     - 5
+
+// Recipe represents the name and collection of ingredients for a sandwich
+type Recipe struct {
+	Name     string  `json:"name" yaml:"name"`
+	ID       int32   `json:"id" yaml:"id"`
+	Bread    int32   `json:"bread" yaml:"bread"`
+	Meats    []int32 `json:"meats" yaml:"meats"`
+	Cheeses  []int32 `json:"cheeses" yaml:"cheeses"`
+	Toppings []int32 `json:"toppings" yaml:"toppings"`
+}
 
 var allRecipes []Recipe
 
 func main() {
-	allRecipes = GetRecipesFromFile("recipes.yaml")
-	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/recipes", GetAllRecipes).Methods("GET")
-	router.HandleFunc("/recipes", AddRecipe).Methods("POST")
-	router.HandleFunc("/recipes/{id}", GetSingleRecipe).Methods("GET")
-	router.HandleFunc("/recipes/{id}", DeleteRecipe).Methods("DELETE")
-	http.ListenAndServe(":8080", router)
-}
-
-// GetSingleRecipe responds to GET requests and returns a single Recipe from ID
-func GetSingleRecipe(w http.ResponseWriter, r *http.Request) {
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-	recipeJSON := GetRecipeJSON(id)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(recipeJSON)
-}
-
-// GetRecipeJSON is used to convert Recipe to JSON
-func GetRecipeJSON(id int) []byte {
-	recipe, _ := FindRecipe(id)
-	recipeJSON, _ := json.Marshal(recipe)
-	return recipeJSON
-}
-
-// GetAllRecipes responds to GET requests and returns all Recipes
-func GetAllRecipes(w http.ResponseWriter, r *http.Request) {
-	var recipeJSON []byte
-	recipeJSON, _ = json.Marshal(allRecipes)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(recipeJSON)
-}
-
-// AddRecipe responds to POST requests to create a new Recipe from the JSON, add
-// it to allRecipes, and write to file
-func AddRecipe(w http.ResponseWriter, r *http.Request) {
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	var recipe Recipe
-	json.Unmarshal(reqBody, &recipe)
-	recipe.ID = len(allRecipes) + 1
-	allRecipes = append(allRecipes, recipe)
-	WriteRecipesToFile(allRecipes, "recipes.yaml")
-	UpdateMenu()
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(GetRecipeJSON(recipe.ID))
-}
-
-// DeleteRecipe responds to DELETE requests to delete a Recipe based on its ID
-// and writes this change to file
-func DeleteRecipe(w http.ResponseWriter, r *http.Request) {
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-	for i, recipe := range allRecipes {
-		if recipe.ID == id {
-			allRecipes = append(allRecipes[:i], allRecipes[i+1:]...)
-		}
-	}
-	WriteRecipesToFile(allRecipes, "recipes.yaml")
-	UpdateMenu()
-}
-
-// UpdateMenu is called after adding or deleting a Recipe and sends an empty
-// POST request to the Menu microservice telling it to update
-func UpdateMenu() {
-	var httpClient = &http.Client{}
-	r, _ := httpClient.PostForm("http://menu:8080/menu", url.Values{})
-	defer r.Body.Close()
-}
-
-// WriteRecipesToFile is used to write allRecipes to a YAML file
-func WriteRecipesToFile(recipes []Recipe, fname string) {
-	var recipesData []byte
-	recipesData, _ = yaml.Marshal(recipes)
-	ioutil.WriteFile(fname, recipesData, 0644)
-}
-
-// GetRecipesFromFile is used to read a YAML file into allRecipes
-func GetRecipesFromFile(fname string) []Recipe {
-	file, err := os.Open(fname)
+	allRecipes = append(allRecipes, Recipe{"BLT", 1, 1, []int32{2}, []int32{}, []int32{3, 4, 5}})
+	lis, err := net.Listen("tcp", port)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatalf("failed to listen: %v", err)
 	}
-	fmt.Println("Successfully Opened " + fname)
-	defer file.Close()
+	s := grpc.NewServer()
+	pb.RegisterRecipesServer(s, &server{})
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
+}
 
-	byteValue, _ := ioutil.ReadAll(file)
-	var recipes []Recipe
-	yaml.Unmarshal(byteValue, &recipes)
-	return recipes
+func (s *server) GetRecipe(ctx context.Context, in *pb.RecipeRequest) (*pb.Recipe, error) {
+	log.Printf("Received: %d", in.Id)
+	recipe, _ := FindRecipe(in.Id)
+	return &pb.Recipe{
+		Name:     recipe.Name,
+		Id:       recipe.ID,
+		Bread:    recipe.Bread,
+		Meats:    recipe.Meats,
+		Cheeses:  recipe.Cheeses,
+		Toppings: recipe.Toppings,
+	}, nil
 }
 
 // FindRecipe returns a Recipe from allRecipes based on ID
-func FindRecipe(id int) (Recipe, error) {
+func FindRecipe(id int32) (Recipe, error) {
 	for _, recipe := range allRecipes {
 		if recipe.ID == id {
 			return recipe, nil
