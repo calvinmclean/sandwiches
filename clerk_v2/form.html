@@ -9,7 +9,7 @@
       {{if .Menu}}
       <select name="item">
         {{range $element := .Sandwiches}}
-          <option value="{{$element.Id}}">{{$element.Name}} (${{$element.Price}})</option>
+          <option value="{{$element.ID}}">{{$element.Name}} (${{$element.Price}})</option>
         {{end}}
       </select>
       {{else}}
@@ -19,7 +19,7 @@
       <h3>Extra Ingredients IDs:</h3>
       {{if .Ingredients}}
       {{range $element := .Extras}}
-      <input type="checkbox" name="extras[{{$element.Id}}]" value="{{$element.Id}}"> {{$element.Name}} (${{$element.Price}})<br>
+      <input type="checkbox" name="extras[{{$element.ID}}]" value="{{$element.ID}}"> {{$element.Name}} (${{$element.Price}})<br>
       {{end}}
       {{else}}
       No Ingredients available

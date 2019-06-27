@@ -10,7 +10,7 @@ import (
 	"text/template"
 )
 
-type MenuItemWithIngredients struct {
+type menuItemPlus struct {
 	MenuItem MenuItem
 	Bread    Ingredient
 	Meats    []Ingredient
@@ -18,15 +18,15 @@ type MenuItemWithIngredients struct {
 	Toppings []Ingredient
 }
 
-type MenuInfo struct {
-	Menu        []MenuItemWithIngredients
+type menuInfo struct {
+	Menu        []menuItemPlus
 	Ingredients []Ingredient
 }
 
-var Menu []MenuItem
+var allMenu []MenuItem
 
 func main() {
-	Menu = BuildMenu()
+	allMenu = BuildMenu()
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/menu", GetAllMenuItems).Methods("GET")
 	router.HandleFunc("/menu/show", ShowMenu).Methods("GET")
@@ -35,35 +35,42 @@ func main() {
 	http.ListenAndServe(":8080", router)
 }
 
+// GetSingleMenuItem responds to GET requests and returns a MenuItem from ID
 func GetSingleMenuItem(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 	menuItem, _ := FindMenuItem(id)
-	menuItemJson, _ := json.Marshal(menuItem)
+	menuItemJSON, _ := json.Marshal(menuItem)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(menuItemJson)
+	w.Write(menuItemJSON)
 }
 
+// GetAllMenuItems responds to GET requests and returns a list of all MenuItems
 func GetAllMenuItems(w http.ResponseWriter, r *http.Request) {
-	var menuJson []byte
-	menuJson, _ = json.Marshal(Menu)
+	var menuJSON []byte
+	menuJSON, _ = json.Marshal(allMenu)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(menuJson)
+	w.Write(menuJSON)
 }
 
+// UpdateMenu responds to POST requests and updates allMenu based on Recipe or
+// Ingredient changes
 func UpdateMenu(w http.ResponseWriter, r *http.Request) {
-	Menu = BuildMenu()
-	var menuJson []byte
-	menuJson, _ = json.Marshal(Menu)
+	allMenu = BuildMenu()
+	var menuJSON []byte
+	menuJSON, _ = json.Marshal(allMenu)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(menuJson)
+	w.Write(menuJSON)
 }
 
+// ShowMenu responds to GET requests and builds new menuItemPlus
+// in order to populate an HTML template with each MenuItem, its price, and a
+// list of Ingredients by type
 func ShowMenu(w http.ResponseWriter, r *http.Request) {
 	ingredients, _ := GetIngredients()
 
-	var menuWithIngredients []MenuItemWithIngredients
-	for _, menuItem := range Menu {
-		recipe := GetRecipe(menuItem.Id)
+	var menuWithIngredients []menuItemPlus
+	for _, menuItem := range allMenu {
+		recipe := GetRecipe(menuItem.ID)
 
 		var meats []Ingredient
 		for _, id := range recipe.Meats {
@@ -77,15 +84,18 @@ func ShowMenu(w http.ResponseWriter, r *http.Request) {
 		for _, id := range recipe.Toppings {
 			toppings = append(toppings, GetIngredient(id))
 		}
-		menuWithIngredients = append(menuWithIngredients, MenuItemWithIngredients{menuItem, GetIngredient(recipe.Bread), meats, cheeses, toppings})
+		menuWithIngredients = append(menuWithIngredients,
+			menuItemPlus{menuItem, GetIngredient(recipe.Bread), meats, cheeses, toppings})
 	}
 
-	info := MenuInfo{menuWithIngredients, ingredients}
+	info := menuInfo{menuWithIngredients, ingredients}
 	tmpl, _ := template.ParseFiles("menu.html")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	tmpl.Execute(w, info)
 }
 
+// BuildMenu gathers info from Recipes and Ingredients to create a list of
+// MenuItems with calculated prices
 func BuildMenu() []MenuItem {
 	recipes := GetRecipes() // Get all recipes
 	menu := make([]MenuItem, len(recipes))
@@ -93,24 +103,24 @@ func BuildMenu() []MenuItem {
 	// Add prices and names to the MenuItems
 	for i, recipe := range recipes {
 		menu[i] = MenuItem{
-			Id:    recipe.Id,
-			Price: CalcRecipePrice(recipe),
+			ID:    recipe.ID,
+			Price: calcRecipePrice(recipe),
 			Name:  recipe.Name,
 		}
 	}
 	return menu
 }
 
-func CalcRecipePrice(recipe Recipe) float64 {
+func calcRecipePrice(recipe Recipe) float64 {
 	price := 0.00
-	price += CalcPriceFromSlice([]int{recipe.Bread})
-	price += CalcPriceFromSlice(recipe.Meats)
-	price += CalcPriceFromSlice(recipe.Cheeses)
-	price += CalcPriceFromSlice(recipe.Toppings)
+	price += calcPriceFromIngredients([]int{recipe.Bread})
+	price += calcPriceFromIngredients(recipe.Meats)
+	price += calcPriceFromIngredients(recipe.Cheeses)
+	price += calcPriceFromIngredients(recipe.Toppings)
 	return price
 }
 
-func CalcPriceFromSlice(items []int) float64 {
+func calcPriceFromIngredients(items []int) float64 {
 	price := 0.00
 	for _, item := range items {
 		price += GetIngredient(item).Price
@@ -118,6 +128,7 @@ func CalcPriceFromSlice(items []int) float64 {
 	return price
 }
 
+// GetIngredient makes a GET request to find a single Ingredient based on ID
 func GetIngredient(id int) Ingredient {
 	var ingredient Ingredient
 	var httpClient = &http.Client{}
@@ -127,18 +138,20 @@ func GetIngredient(id int) Ingredient {
 	return ingredient
 }
 
+// GetIngredients makes a GET request to get all Ingredients
 func GetIngredients() ([]Ingredient, error) {
 	var ingredients []Ingredient
 	var httpClient = &http.Client{}
 	r, err := httpClient.Get("http://ingredients:8080/ingredients")
 	if err != nil || r.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("%d StatusCode from ingredients", r.StatusCode))
+		return nil, fmt.Errorf("%d StatusCode from ingredients", r.StatusCode)
 	}
 	defer r.Body.Close()
 	json.NewDecoder(r.Body).Decode(&ingredients)
 	return ingredients, nil
 }
 
+// GetRecipes makes a GET request to get all Recipes
 func GetRecipes() []Recipe {
 	var recipes []Recipe
 	var httpClient = &http.Client{}
@@ -148,6 +161,7 @@ func GetRecipes() []Recipe {
 	return recipes
 }
 
+// GetRecipe makes a GET request to find a Recipe from ID
 func GetRecipe(id int) Recipe {
 	var recipe Recipe
 	var httpClient = &http.Client{}
@@ -157,13 +171,10 @@ func GetRecipe(id int) Recipe {
 	return recipe
 }
 
+// FindMenuItem returns a MenuItem from allMenu based on ID
 func FindMenuItem(id int) (MenuItem, error) {
-	if Menu == nil {
-		Menu = BuildMenu()
-	}
-
-	for _, menuItem := range Menu {
-		if menuItem.Id == id {
+	for _, menuItem := range allMenu {
+		if menuItem.ID == id {
 			return menuItem, nil
 		}
 	}

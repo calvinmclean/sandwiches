@@ -13,10 +13,10 @@ import (
 	"strconv"
 )
 
-var Ingredients []Ingredient
+var allIngredients []Ingredient
 
 func main() {
-	Ingredients = GetIngredientsFromFile("ingredients.yaml")
+	allIngredients = GetIngredientsFromFile("ingredients.yaml")
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/ingredients", GetAllIngredients).Methods("GET")
 	router.HandleFunc("/ingredients", AddIngredient).Methods("POST")
@@ -25,61 +25,73 @@ func main() {
 	http.ListenAndServe(":8080", router)
 }
 
+// GetSingleIngredient responds to GET requests and returns an Ingredient by ID
 func GetSingleIngredient(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-	ingredientJson := GetIngredientJson(id)
+	ingredientJSON := GetIngredientJSON(id)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(ingredientJson)
+	w.Write(ingredientJSON)
 }
 
-func GetIngredientJson(id int) []byte {
+// GetIngredientJSON is used to convert Ingredient to JSON
+func GetIngredientJSON(id int) []byte {
 	ingredient, _ := FindIngredient(id)
-	ingredientJson, _ := json.Marshal(ingredient)
-	return ingredientJson
+	ingredientJSON, _ := json.Marshal(ingredient)
+	return ingredientJSON
 }
 
+// GetAllIngredients reponds to GET requests and returns all Ingredients
 func GetAllIngredients(w http.ResponseWriter, r *http.Request) {
-	var ingredientsJson []byte
-	ingredientsJson, _ = json.Marshal(Ingredients)
+	var ingredientsJSON []byte
+	ingredientsJSON, _ = json.Marshal(allIngredients)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(ingredientsJson)
+	w.Write(ingredientsJSON)
 }
 
+// AddIngredient responds to POST requests to create a new Ingredient from the
+// JSON, add it to allIngredients, and write to file
 func AddIngredient(w http.ResponseWriter, r *http.Request) {
 	reqBody, _ := ioutil.ReadAll(r.Body)
 	var ingredient Ingredient
 	json.Unmarshal(reqBody, &ingredient)
-	ingredient.Id = len(Ingredients) + 1
-	Ingredients = append(Ingredients, ingredient)
-	WriteIngredientsToFile(Ingredients, "ingredients.yaml")
+	ingredient.ID = len(allIngredients) + 1
+	allIngredients = append(allIngredients, ingredient)
+	WriteIngredientsToFile(allIngredients, "ingredients.yaml")
 	UpdateMenu()
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(GetIngredientJson(ingredient.Id))
+	w.Write(GetIngredientJSON(ingredient.ID))
 }
 
+// DeleteIngredient responds to DELETE requests to delete an Ingredient based on
+// its ID and writes this change to file
+func DeleteIngredient(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	for i, ingredient := range allIngredients {
+		if ingredient.ID == id {
+			allIngredients = append(allIngredients[:i], allIngredients[i+1:]...)
+		}
+	}
+	WriteIngredientsToFile(allIngredients, "ingredients.yaml")
+	UpdateMenu()
+}
+
+// UpdateMenu is called after adding or deleting an Ingredient and sends an
+// empty POST request to the Menu microservice telling it to update
 func UpdateMenu() {
 	var httpClient = &http.Client{}
 	r, _ := httpClient.PostForm("http://menu:8080/menu", url.Values{})
 	defer r.Body.Close()
 }
 
-func DeleteIngredient(w http.ResponseWriter, r *http.Request) {
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-	for i, ingredient := range Ingredients {
-		if ingredient.Id == id {
-			Ingredients = append(Ingredients[:i], Ingredients[i+1:]...)
-		}
-	}
-	WriteIngredientsToFile(Ingredients, "ingredients.yaml")
-}
-
+// WriteIngredientsToFile is used to write allIngredients to a YAML file
 func WriteIngredientsToFile(ingredients []Ingredient, fname string) {
 	var ingredientsData []byte
 	ingredientsData, _ = yaml.Marshal(ingredients)
 	ioutil.WriteFile(fname, ingredientsData, 0644)
 }
 
+// GetIngredientsFromFile is used to read a YAML file into allIngredients
 func GetIngredientsFromFile(fname string) []Ingredient {
 	file, err := os.Open(fname)
 	if err != nil {
@@ -95,13 +107,10 @@ func GetIngredientsFromFile(fname string) []Ingredient {
 	return ingredients
 }
 
+// FindIngredient returns an Ingredient from allIngredients based on ID
 func FindIngredient(id int) (Ingredient, error) {
-	if Ingredients == nil {
-		Ingredients = GetIngredientsFromFile("ingredients.yaml")
-	}
-
-	for _, ingredient := range Ingredients {
-		if ingredient.Id == id {
+	for _, ingredient := range allIngredients {
+		if ingredient.ID == id {
 			return ingredient, nil
 		}
 	}

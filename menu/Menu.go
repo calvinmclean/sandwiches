@@ -10,10 +10,10 @@ import (
 	"strings"
 )
 
-var Menu []MenuItem
+var allMenu []MenuItem
 
 func main() {
-	Menu = BuildMenu()
+	allMenu = BuildMenu()
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/menu", GetAllMenuItems).Methods("GET")
 	router.HandleFunc("/menu/show", ShowMenu).Methods("GET")
@@ -22,71 +22,71 @@ func main() {
 	http.ListenAndServe(":8080", router)
 }
 
+// GetSingleMenuItem responds to GET requests and returns a MenuItem from ID
 func GetSingleMenuItem(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 	menuItem, _ := FindMenuItem(id)
-	menuItemJson, _ := json.Marshal(menuItem)
+	menuItemJSON, _ := json.Marshal(menuItem)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(menuItemJson)
+	w.Write(menuItemJSON)
 }
 
+// GetAllMenuItems responds to GET requests and returns a list of all MenuItems
 func GetAllMenuItems(w http.ResponseWriter, r *http.Request) {
-	var menuJson []byte
-	menuJson, _ = json.Marshal(Menu)
+	var menuJSON []byte
+	menuJSON, _ = json.Marshal(allMenu)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(menuJson)
+	w.Write(menuJSON)
 }
 
+// UpdateMenu responds to POST requests and updates allMenu based on Recipe or
+// Ingredient changes
 func UpdateMenu(w http.ResponseWriter, r *http.Request) {
-	Menu = BuildMenu()
-	var menuJson []byte
-	menuJson, _ = json.Marshal(Menu)
+	allMenu = BuildMenu()
+	var menuJSON []byte
+	menuJSON, _ = json.Marshal(allMenu)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(menuJson)
+	w.Write(menuJSON)
 }
 
+// ShowMenu responds to GET requests and writes the Menu string to HTTP
 func ShowMenu(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, strings.Join(GetMenuString(), "\n"))
+	var menuString []string
+	menuString = append(menuString, "Welcome to the Sandwich Shop!\n")
+	menuString = append(menuString, "Here is our menu:")
+	for i, item := range allMenu {
+		menuString = append(menuString, fmt.Sprintf("%d. %s ($%.2f)", i+1, item.Name, item.Price))
+	}
+	fmt.Fprintf(w, strings.Join(menuString, "\n"))
 }
 
-func GetMenuString() []string {
-	if Menu == nil {
-		Menu = BuildMenu()
-	}
-	var result []string
-	result = append(result, "Welcome to the Sandwich Shop!\n")
-	result = append(result, "Here is our menu:")
-	for i, item := range Menu {
-		result = append(result, fmt.Sprintf("%d. %s ($%.2f)", i+1, item.Name, item.Price))
-	}
-	return result
-}
-
+// BuildMenu gathers info from Recipes and Ingredients to create a list of
+// MenuItems with calculated prices
 func BuildMenu() []MenuItem {
-	recipes := GetRecipes() // Get all recipes
+	recipes := GetRecipes()
 	menu := make([]MenuItem, len(recipes))
 
 	// Add prices and names to the MenuItems
 	for i, recipe := range recipes {
 		menu[i] = MenuItem{
-			Id:    recipe.Id,
-			Price: CalcRecipePrice(recipe),
+			ID:    recipe.ID,
+			Price: calcRecipePrice(recipe),
 			Name:  recipe.Name,
 		}
 	}
 	return menu
 }
 
-func CalcRecipePrice(recipe Recipe) float64 {
+func calcRecipePrice(recipe Recipe) float64 {
 	price := 0.00
-	price += CalcPriceFromSlice([]int{recipe.Bread})
-	price += CalcPriceFromSlice(recipe.Meats)
-	price += CalcPriceFromSlice(recipe.Cheeses)
-	price += CalcPriceFromSlice(recipe.Toppings)
+	price += calcPriceFromIngredients([]int{recipe.Bread})
+	price += calcPriceFromIngredients(recipe.Meats)
+	price += calcPriceFromIngredients(recipe.Cheeses)
+	price += calcPriceFromIngredients(recipe.Toppings)
 	return price
 }
 
-func CalcPriceFromSlice(items []int) float64 {
+func calcPriceFromIngredients(items []int) float64 {
 	price := 0.00
 	for _, item := range items {
 		price += GetIngredient(item).Price
@@ -94,6 +94,7 @@ func CalcPriceFromSlice(items []int) float64 {
 	return price
 }
 
+// GetIngredient makes a GET request to find a single Ingredient based on ID
 func GetIngredient(id int) Ingredient {
 	var ingredient Ingredient
 	var httpClient = &http.Client{}
@@ -103,6 +104,7 @@ func GetIngredient(id int) Ingredient {
 	return ingredient
 }
 
+// GetRecipes makes a GET request to get all Recipes
 func GetRecipes() []Recipe {
 	var recipes []Recipe
 	var httpClient = &http.Client{}
@@ -112,13 +114,10 @@ func GetRecipes() []Recipe {
 	return recipes
 }
 
+// FindMenuItem returns a MenuItem from allMenu based on ID
 func FindMenuItem(id int) (MenuItem, error) {
-	if Menu == nil {
-		Menu = BuildMenu()
-	}
-
-	for _, menuItem := range Menu {
-		if menuItem.Id == id {
+	for _, menuItem := range allMenu {
+		if menuItem.ID == id {
 			return menuItem, nil
 		}
 	}
