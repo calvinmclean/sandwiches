@@ -5,12 +5,9 @@ package sandwiches;
 
 service Ingredients {
   rpc GetIngredient (IngredientRequest) returns (Ingredient) {}
-  rpc GetAllIngredients (AllIngredientsRequest) returns (AllIngredients) {}
 }
 message IngredientRequest {
   int32 id = 1;
-}
-message AllIngredientsRequest {
 }
 message Ingredient {
   string name = 1;
@@ -18,19 +15,13 @@ message Ingredient {
   string type = 3;
   int32 id = 4;
 }
-message AllIngredients {
-  repeated Ingredient ingredients = 1;
-}
 
 
 service Recipes {
   rpc GetRecipe (RecipeRequest) returns (Recipe) {}
-  rpc GetAllRecipes (AllRecipesRequest) returns (AllRecipes) {}
 }
 message RecipeRequest {
   int32 id = 1;
-}
-message AllRecipesRequest {
 }
 message Recipe {
   string name = 1;
@@ -39,7 +30,4 @@ message Recipe {
   repeated int32 meats = 4 [packed=true];
   repeated int32 cheeses = 5 [packed=true];
   repeated int32 toppings = 6 [packed=true];
-}
-message AllRecipes {
-  repeated Recipe recipes = 1;
 }

@@ -54,11 +54,6 @@ func (s *server) GetRecipe(ctx context.Context, in *pb.RecipeRequest) (*pb.Recip
 	}, nil
 }
 
-func (s *server) GetAllRecipes(ctx context.Context, in *pb.AllRecipesRequest) (*pb.AllRecipes, error) {
-	log.Printf("Received: %d", in.Id)
-	return &pb.AllRecipes{allRecipes}, nil
-}
-
 // FindRecipe returns a Recipe from allRecipes based on ID
 func FindRecipe(id int32) (Recipe, error) {
 	for _, recipe := range allRecipes {
