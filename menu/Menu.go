@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -62,65 +61,60 @@ func ShowMenu(w http.ResponseWriter, r *http.Request) {
 
 // BuildMenu gathers info from Recipes and Ingredients to create a list of
 // MenuItems with calculated prices
-func BuildMenu() []MenuItem {
+func BuildMenu() (menu []MenuItem) {
 	recipes := GetRecipes()
-	menu := make([]MenuItem, len(recipes))
 
 	// Add prices and names to the MenuItems
-	for i, recipe := range recipes {
-		menu[i] = MenuItem{
+	for _, recipe := range recipes {
+		menu = append(menu, MenuItem{
 			ID:    recipe.ID,
 			Price: calcRecipePrice(recipe),
 			Name:  recipe.Name,
-		}
+		})
 	}
-	return menu
+	return
 }
 
-func calcRecipePrice(recipe Recipe) float64 {
-	price := 0.00
+func calcRecipePrice(recipe Recipe) (price float64) {
 	price += calcPriceFromIngredients([]int{recipe.Bread})
 	price += calcPriceFromIngredients(recipe.Meats)
 	price += calcPriceFromIngredients(recipe.Cheeses)
 	price += calcPriceFromIngredients(recipe.Toppings)
-	return price
+	return
 }
 
-func calcPriceFromIngredients(items []int) float64 {
-	price := 0.00
+func calcPriceFromIngredients(items []int) (price float64) {
 	for _, item := range items {
 		price += GetIngredient(item).Price
 	}
-	return price
+	return
 }
 
 // GetIngredient makes a GET request to find a single Ingredient based on ID
-func GetIngredient(id int) Ingredient {
-	var ingredient Ingredient
+func GetIngredient(id int) (ingredient Ingredient) {
 	var httpClient = &http.Client{}
 	r, _ := httpClient.Get(fmt.Sprintf("http://ingredients:8080/ingredients/%d", id))
 	defer r.Body.Close()
 	json.NewDecoder(r.Body).Decode(&ingredient)
-	return ingredient
+	return
 }
 
 // GetRecipes makes a GET request to get all Recipes
-func GetRecipes() []Recipe {
-	var recipes []Recipe
+func GetRecipes() (recipes []Recipe) {
 	var httpClient = &http.Client{}
 	r, _ := httpClient.Get("http://recipes:8080/recipes")
 	defer r.Body.Close()
 	json.NewDecoder(r.Body).Decode(&recipes)
-	return recipes
+	return
 }
 
 // FindMenuItem returns a MenuItem from allMenu based on ID
-func FindMenuItem(id int) (MenuItem, error) {
-	for _, menuItem := range allMenu {
+func FindMenuItem(id int) (menuItem MenuItem, err error) {
+	for _, menuItem = range allMenu {
 		if menuItem.ID == id {
-			return menuItem, nil
+			return
 		}
 	}
-	var fake MenuItem
-	return fake, errors.New("No such recipe")
+	err = fmt.Errorf("No such MenuItem %d", id)
+	return
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -17,10 +16,8 @@ type sandwichOrder struct {
 }
 
 type orderInfo struct {
-	Menu        bool
-	Ingredients bool
-	Sandwiches  []MenuItem
-	Extras      []Ingredient
+	Sandwiches []MenuItem
+	Extras     []Ingredient
 }
 
 func main() {
@@ -34,18 +31,15 @@ func main() {
 // SandwichForm gets the Ingredients and Menu from other services and writes an
 // HTML template to HTTP to present a form for ordering a sandwich
 func SandwichForm(w http.ResponseWriter, r *http.Request) {
-	menu, menuErr := GetMenu()
-	ingredients, ingErr := GetIngredients()
-	menuExist, ingExist := true, true
-	if menuErr != nil {
-		menuExist = false
-		fmt.Println(menuErr)
+	sandwiches, err := GetMenu()
+	if err != nil {
+		fmt.Println(err)
 	}
-	if ingErr != nil {
-		ingExist = false
-		fmt.Println(ingErr)
+	extras, err := GetIngredients()
+	if err != nil {
+		fmt.Println(err)
 	}
-	info := orderInfo{menuExist, ingExist, menu, ingredients}
+	info := orderInfo{sandwiches, extras}
 	tmpl, _ := template.ParseFiles("form.html")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	tmpl.Execute(w, info)
@@ -75,65 +69,61 @@ func PurchaseSandwich(w http.ResponseWriter, r *http.Request) {
 }
 
 // CalculateSandwichPrice returns the final price of a sandwich with addons
-func CalculateSandwichPrice(sandwich sandwichOrder) float64 {
+func CalculateSandwichPrice(sandwich sandwichOrder) (price float64) {
 	menuItem, _ := GetMenuItem(sandwich.MenuItemID)
-	price := menuItem.Price
+	price += menuItem.Price
 
 	for _, id := range sandwich.Extras {
 		ingredient, _ := GetIngredient(id)
 		price += ingredient.Price
 	}
-	return price
+	return
 }
 
 // GetIngredient makes a GET request to find an Ingredient from ID
-func GetIngredient(id int) (Ingredient, error) {
-	var ingredient Ingredient
+func GetIngredient(id int) (ingredient Ingredient, err error) {
 	var httpClient = &http.Client{}
 	r, err := httpClient.Get(fmt.Sprintf("http://ingredients:8080/ingredients/%d", id))
 	if err != nil || r.StatusCode != 200 {
-		return ingredient, fmt.Errorf("%d StatusCode from ingredients", r.StatusCode)
+		err = fmt.Errorf("%d StatusCode from ingredients", r.StatusCode)
 	}
 	defer r.Body.Close()
 	json.NewDecoder(r.Body).Decode(&ingredient)
-	return ingredient, nil
+	return
 }
 
 // GetIngredients makes a GET request to return a list of all Ingredients
-func GetIngredients() ([]Ingredient, error) {
-	var ingredients []Ingredient
+func GetIngredients() (ingredients []Ingredient, err error) {
 	var httpClient = &http.Client{}
 	r, err := httpClient.Get("http://ingredients:8080/ingredients")
 	if err != nil || r.StatusCode != 200 {
-		return nil, fmt.Errorf("%d StatusCode from ingredients", r.StatusCode)
+		err = fmt.Errorf("%d StatusCode from ingredients", r.StatusCode)
 	}
 	defer r.Body.Close()
 	json.NewDecoder(r.Body).Decode(&ingredients)
-	return ingredients, nil
+	return
 }
 
 // GetMenuItem makes a GET request to find a MenuItem from ID
-func GetMenuItem(id int) (MenuItem, error) {
-	var menuItem MenuItem
+func GetMenuItem(id int) (menuItem MenuItem, err error) {
 	var httpClient = &http.Client{}
 	r, err := httpClient.Get(fmt.Sprintf("http://menu:8080/menu/%d", id))
 	if err != nil || r.StatusCode != 200 {
-		return menuItem, fmt.Errorf("%d StatusCode from menu", r.StatusCode)
+		err = fmt.Errorf("%d StatusCode from menu", r.StatusCode)
 	}
 	defer r.Body.Close()
 	json.NewDecoder(r.Body).Decode(&menuItem)
-	return menuItem, nil
+	return
 }
 
 // GetMenu makes a GET request to return a list of all MenuItems
-func GetMenu() ([]MenuItem, error) {
-	var menu []MenuItem
+func GetMenu() (menu []MenuItem, err error) {
 	var httpClient = &http.Client{}
 	r, err := httpClient.Get("http://menu:8080/menu")
 	if err != nil || r.StatusCode != 200 {
-		return nil, fmt.Errorf("%d StatusCode from menu", r.StatusCode)
+		err = fmt.Errorf("%d StatusCode from menu", r.StatusCode)
 	}
 	defer r.Body.Close()
 	json.NewDecoder(r.Body).Decode(&menu)
-	return menu, nil
+	return
 }

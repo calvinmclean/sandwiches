@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"gopkg.in/yaml.v2"
@@ -34,10 +33,10 @@ func GetSingleIngredient(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetIngredientJSON is used to convert Ingredient to JSON
-func GetIngredientJSON(id int) []byte {
+func GetIngredientJSON(id int) (result []byte) {
 	ingredient, _ := FindIngredient(id)
-	ingredientJSON, _ := json.Marshal(ingredient)
-	return ingredientJSON
+	result, _ = json.Marshal(ingredient)
+	return
 }
 
 // GetAllIngredients reponds to GET requests and returns all Ingredients
@@ -92,7 +91,7 @@ func WriteIngredientsToFile(ingredients []Ingredient, fname string) {
 }
 
 // GetIngredientsFromFile is used to read a YAML file into allIngredients
-func GetIngredientsFromFile(fname string) []Ingredient {
+func GetIngredientsFromFile(fname string) (ingredients []Ingredient) {
 	file, err := os.Open(fname)
 	if err != nil {
 		fmt.Println(err)
@@ -101,19 +100,17 @@ func GetIngredientsFromFile(fname string) []Ingredient {
 	defer file.Close()
 
 	byteValue, _ := ioutil.ReadAll(file)
-	var ingredients []Ingredient
-
 	yaml.Unmarshal(byteValue, &ingredients)
-	return ingredients
+	return
 }
 
 // FindIngredient returns an Ingredient from allIngredients based on ID
-func FindIngredient(id int) (Ingredient, error) {
-	for _, ingredient := range allIngredients {
+func FindIngredient(id int) (ingredient Ingredient, err error) {
+	for _, ingredient = range allIngredients {
 		if ingredient.ID == id {
-			return ingredient, nil
+			return
 		}
 	}
-	var fake Ingredient
-	return fake, errors.New("No such ingredient")
+	err = fmt.Errorf("No such ingredient %d", id)
+	return
 }

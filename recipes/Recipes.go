@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"gopkg.in/yaml.v2"
@@ -34,10 +33,10 @@ func GetSingleRecipe(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetRecipeJSON is used to convert Recipe to JSON
-func GetRecipeJSON(id int) []byte {
+func GetRecipeJSON(id int) (result []byte) {
 	recipe, _ := FindRecipe(id)
-	recipeJSON, _ := json.Marshal(recipe)
-	return recipeJSON
+	result, _ = json.Marshal(recipe)
+	return
 }
 
 // GetAllRecipes responds to GET requests and returns all Recipes
@@ -92,7 +91,7 @@ func WriteRecipesToFile(recipes []Recipe, fname string) {
 }
 
 // GetRecipesFromFile is used to read a YAML file into allRecipes
-func GetRecipesFromFile(fname string) []Recipe {
+func GetRecipesFromFile(fname string) (recipes []Recipe) {
 	file, err := os.Open(fname)
 	if err != nil {
 		fmt.Println(err)
@@ -101,18 +100,17 @@ func GetRecipesFromFile(fname string) []Recipe {
 	defer file.Close()
 
 	byteValue, _ := ioutil.ReadAll(file)
-	var recipes []Recipe
 	yaml.Unmarshal(byteValue, &recipes)
-	return recipes
+	return
 }
 
 // FindRecipe returns a Recipe from allRecipes based on ID
-func FindRecipe(id int) (Recipe, error) {
-	for _, recipe := range allRecipes {
+func FindRecipe(id int) (recipe Recipe, err error) {
+	for _, recipe = range allRecipes {
 		if recipe.ID == id {
-			return recipe, nil
+			return
 		}
 	}
-	var fake Recipe
-	return fake, errors.New("No such recipe")
+	err = fmt.Errorf("No such recipe %d", id)
+	return
 }
