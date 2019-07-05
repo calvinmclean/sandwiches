@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"errors"
-	pb "github.com/calvinmclean/sandwiches/sandwiches"
 	"google.golang.org/grpc"
 	"log"
 	"net"
+	pb "sandwiches/sandwiches"
 )
 
 const (
@@ -52,6 +52,22 @@ func (s *server) GetRecipe(ctx context.Context, in *pb.RecipeRequest) (*pb.Recip
 		Cheeses:  recipe.Cheeses,
 		Toppings: recipe.Toppings,
 	}, nil
+}
+
+func (s *server) GetRecipes(ctx context.Context, _ *pb.Empty) (*pb.MultipleRecipe, error) {
+	log.Printf("Received request for all Recipes")
+	var result pb.MultipleRecipe
+	for _, recipe := range allRecipes {
+		result.Recipes = append(result.Recipes, &pb.Recipe{
+			Name:     recipe.Name,
+			Id:       recipe.ID,
+			Bread:    recipe.Bread,
+			Meats:    recipe.Meats,
+			Cheeses:  recipe.Cheeses,
+			Toppings: recipe.Toppings,
+		})
+	}
+	return &result, nil
 }
 
 // FindRecipe returns a Recipe from allRecipes based on ID

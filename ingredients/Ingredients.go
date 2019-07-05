@@ -3,17 +3,16 @@ package main
 import (
 	"context"
 	"errors"
-	pb "github.com/calvinmclean/sandwiches/sandwiches"
 	"google.golang.org/grpc"
 	"log"
 	"net"
+	pb "sandwiches/sandwiches"
 )
 
 const (
 	port = ":50051"
 )
 
-// server is used to implement helloworld.GreeterServer.
 type server struct{}
 
 // Ingredient represents a sandwich ingredient with its name, price, and type
@@ -48,6 +47,20 @@ func (s *server) GetIngredient(ctx context.Context, in *pb.IngredientRequest) (*
 		Type:  ingredient.Type,
 		Id:    ingredient.ID,
 	}, nil
+}
+
+func (s *server) GetIngredients(ctx context.Context, _ *pb.Empty) (*pb.MultipleIngredient, error) {
+	log.Printf("Received request for all Ingredients")
+	var result pb.MultipleIngredient
+	for _, ingredient := range allIngredients {
+		result.Ingredients = append(result.Ingredients, &pb.Ingredient{
+			Name:  ingredient.Name,
+			Price: ingredient.Price,
+			Type:  ingredient.Type,
+			Id:    ingredient.ID,
+		})
+	}
+	return &result, nil
 }
 
 // FindIngredient returns an Ingredient from allIngredients based on ID
