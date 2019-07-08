@@ -21,13 +21,13 @@ func main() {
 
 // Start ...
 func Start() {
-	conn := getConnection("localhost:50051")
+	conn := getConnection("ingredients:50051")
 	ingredientsClient = pb.NewIngredientsClient(conn)
 
-	conn = getConnection("localhost:50052")
+	conn = getConnection("recipes:50052")
 	recipesClient = pb.NewRecipesClient(conn)
 
-	conn = getConnection("localhost:50053")
+	conn = getConnection("menu:50053")
 	menuClient = pb.NewMenuClient(conn)
 	defer conn.Close()
 
