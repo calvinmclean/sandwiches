@@ -6,60 +6,38 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
-	"net/http"
-	"text/template"
+	"time"
 
-	pb "sandwiches/sandwiches"
+	pb "sandwiches/protobuf"
 )
 
 const (
 	port = ":50053"
 )
 
-type menuItemPlus struct {
-	MenuItem MenuItem
-	Bread    pb.Ingredient
-	Meats    []pb.Ingredient
-	Cheeses  []pb.Ingredient
-	Toppings []pb.Ingredient
-}
-
-type menuInfo struct {
-	Menu        []menuItemPlus
-	Ingredients []pb.Ingredient
-}
-
-// Recipe represents the name and collection of ingredients for a sandwich
-type Recipe struct {
-	Name     string  `json:"name" yaml:"name"`
-	ID       int32   `json:"id" yaml:"id"`
-	Bread    int32   `json:"bread" yaml:"bread"`
-	Meats    []int32 `json:"meats" yaml:"meats"`
-	Cheeses  []int32 `json:"cheeses" yaml:"cheeses"`
-	Toppings []int32 `json:"toppings" yaml:"toppings"`
-}
-
-// MenuItem represents an entry in a Menu with an item's name and price
-type MenuItem struct {
-	ID    int32 `json:"id" yaml:"id"`
-	Price float64
-	Name  string
-}
-
-// Ingredient represents a sandwich ingredient with its name, price, and type
-type Ingredient struct {
-	Name  string  `json:"name" yaml:"name"`
-	Price float64 `json:"price" yaml:"price"`
-	Type  string  `json:"type" yaml:"type"`
-	ID    int32   `json:"id" yaml:"id"`
-}
-
 type server struct{}
 
-var allMenu []MenuItem
+var allMenu []pb.MenuItem
+
+var recipesClient pb.RecipesClient
+var ingredientsClient pb.IngredientsClient
 
 func main() {
+	Start()
+}
+
+// Start ...
+func Start() {
+	conn := getConnection("ingredients:50051")
+	ingredientsClient = pb.NewIngredientsClient(conn)
+
+	conn = getConnection("recipes:50052")
+	recipesClient = pb.NewRecipesClient(conn)
+
 	allMenu = BuildMenu()
+
+	fmt.Println(allMenu)
+
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -71,57 +49,49 @@ func main() {
 	}
 }
 
+func getConnection(addr string) *grpc.ClientConn {
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	return conn
+}
+
 func (s *server) GetMenuItem(ctx context.Context, in *pb.MenuItemRequest) (*pb.MenuItem, error) {
 	log.Printf("Received: %d", in.Id)
 	menuItem, _ := FindMenuItem(in.Id)
 	return &pb.MenuItem{
 		Name:  menuItem.Name,
 		Price: menuItem.Price,
-		Id:    menuItem.ID,
+		Id:    menuItem.Id,
 	}, nil
 }
 
-// ShowMenu responds to GET requests and builds new menuItemPlus
-// in order to populate an HTML template with each MenuItem, its price, and a
-// list of Ingredients by type
-func ShowMenu(w http.ResponseWriter, r *http.Request) {
-	ingredients, _ := getIngredients()
-
-	var menuWithIngredients []menuItemPlus
+func (s *server) GetMenuItems(ctx context.Context, _ *pb.Empty) (*pb.MultipleMenuItem, error) {
+	log.Printf("Received request for all MenuItems")
+	var result pb.MultipleMenuItem
 	for _, menuItem := range allMenu {
-		recipe := getRecipe(menuItem.ID)
-
-		var meats []pb.Ingredient
-		for _, id := range recipe.Meats {
-			meats = append(meats, getIngredient(id))
-		}
-		var cheeses []pb.Ingredient
-		for _, id := range recipe.Cheeses {
-			cheeses = append(cheeses, getIngredient(id))
-		}
-		var toppings []pb.Ingredient
-		for _, id := range recipe.Toppings {
-			toppings = append(toppings, getIngredient(id))
-		}
-		menuWithIngredients = append(menuWithIngredients,
-			menuItemPlus{menuItem, getIngredient(recipe.Bread), meats, cheeses, toppings})
+		men, _ := FindMenuItem(menuItem.Id)
+		result.MenuItems = append(result.MenuItems, &men)
 	}
+	return &result, nil
+}
 
-	info := menuInfo{menuWithIngredients, ingredients}
-	tmpl, _ := template.ParseFiles("menu.html")
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	tmpl.Execute(w, info)
+func (s *server) UpdateMenu(ctx context.Context, _ *pb.Empty) (empty *pb.Empty, err error) {
+	log.Printf("Received request to update menu")
+	allMenu = BuildMenu()
+	return
 }
 
 // BuildMenu gathers info from Recipes and Ingredients to create a list of
 // MenuItems with calculated prices
-func BuildMenu() (menu []MenuItem) {
+func BuildMenu() (menu []pb.MenuItem) {
 	recipes := getRecipes()
 
 	// Add prices and names to the MenuItems
-	for _, recipe := range recipes {
-		menu = append(menu, MenuItem{
-			ID:    recipe.ID,
+	for _, recipe := range recipes.Recipes {
+		menu = append(menu, pb.MenuItem{
+			Id:    recipe.Id,
 			Price: calcRecipePrice(recipe),
 			Name:  recipe.Name,
 		})
@@ -129,15 +99,15 @@ func BuildMenu() (menu []MenuItem) {
 	return
 }
 
-func calcRecipePrice(recipe Recipe) (price float64) {
-	price += calcPriceFromIngredients([]int{recipe.Bread})
+func calcRecipePrice(recipe *pb.Recipe) (price float64) {
+	price += calcPriceFromIngredients([]int32{recipe.Bread})
 	price += calcPriceFromIngredients(recipe.Meats)
 	price += calcPriceFromIngredients(recipe.Cheeses)
 	price += calcPriceFromIngredients(recipe.Toppings)
 	return
 }
 
-func calcPriceFromIngredients(items []int) (price float64) {
+func calcPriceFromIngredients(items []int32) (price float64) {
 	for _, item := range items {
 		price += getIngredient(item).Price
 	}
@@ -185,9 +155,9 @@ func getRecipes() pb.MultipleRecipe {
 }
 
 // FindMenuItem returns a MenuItem from allMenu based on ID
-func FindMenuItem(id int32) (menuItem MenuItem, err error) {
+func FindMenuItem(id int32) (menuItem pb.MenuItem, err error) {
 	for _, menuItem = range allMenu {
-		if menuItem.ID == id {
+		if menuItem.Id == id {
 			return
 		}
 	}

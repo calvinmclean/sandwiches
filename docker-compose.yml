@@ -13,6 +13,14 @@ services:
       context: '.'
       dockerfile: 'Dockerfile-ingredients'
 
+  menu:
+    build:
+      context: '.'
+      dockerfile: 'Dockerfile-menu'
+    depends_on:
+      - 'recipes'
+      - 'ingredients'
+
   client:
     build:
       context: '.'
@@ -20,5 +28,6 @@ services:
     depends_on:
       - 'recipes'
       - 'ingredients'
+      - 'menu'
     ports:
       - '80:8080'

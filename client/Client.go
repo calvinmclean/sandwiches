@@ -33,11 +33,11 @@ func Start() {
 
 	allIngredients := getAllIngredients()
 	allRecipes := getAllRecipes()
-	// menu := getMenuItems()
+	menu := getMenuItems()
 
 	log.Printf("All Ingredients: %v", allIngredients.Ingredients)
 	log.Printf("All Recipes: %v", allRecipes.Recipes)
-	// log.Printf("Menu: %v", menu)
+	log.Printf("Menu: %v", menu)
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/ingredients", apiGetAllIngredients).Methods("GET")
@@ -51,7 +51,7 @@ func Start() {
 	// router.HandleFunc("/recipes/{id}", DeleteRecipe).Methods("DELETE")
 
 	// router.HandleFunc("/menu", apiGetAllMenuItems).Methods("GET")
-	// router.HandleFunc("/menu/show", apiShowMenu).Methods("GET")
+	router.HandleFunc("/menu/show", apiShowMenu).Methods("GET")
 	// router.HandleFunc("/menu/{id}", apiGetSingleMenuItem).Methods("GET")
 	// router.HandleFunc("/menu", UpdateMenu).Methods("POST")
 

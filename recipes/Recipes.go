@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	pb "sandwiches/protobuf"
+	"time"
 )
 
 const (
@@ -70,7 +71,23 @@ func (s *server) AddRecipe(ctx context.Context, newRecipe *pb.NewRecipe) (*pb.Re
 		Toppings: newRecipe.Toppings,
 	}
 	allRecipes = append(allRecipes, recipe)
+	// updateMenu()
 	return &recipe, nil
+}
+
+func updateMenu() {
+	conn, err := grpc.Dial("menu:50053", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	menuClient := pb.NewMenuClient(conn)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	_, err = menuClient.UpdateMenu(ctx, &pb.Empty{})
+	if err != nil {
+		log.Fatalf("could not greet: %v", err)
+	}
 }
 
 // FindRecipe returns a Recipe from allRecipes based on ID

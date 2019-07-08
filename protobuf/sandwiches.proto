@@ -59,6 +59,7 @@ message MultipleRecipe {
 service Menu {
   rpc GetMenuItem (MenuItemRequest) returns (MenuItem) {}
   rpc GetMenuItems (Empty) returns (MultipleMenuItem) {}
+  rpc UpdateMenu (Empty) returns (Empty) {}
 }
 message MenuItemRequest {
   int32 id = 1;
