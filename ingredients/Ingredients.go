@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -15,19 +15,21 @@ const (
 
 type server struct{}
 
-// Ingredient represents a sandwich ingredient with its name, price, and type
-type Ingredient struct {
-	Name  string  `json:"name" yaml:"name"`
-	Price float64 `json:"price" yaml:"price"`
-	Type  string  `json:"type" yaml:"type"`
-	ID    int32   `json:"id" yaml:"id"`
-}
-
-var allIngredients []Ingredient
+var allIngredients []pb.Ingredient
 
 func main() {
-	allIngredients = append(allIngredients, Ingredient{"Cheddar", 1.50, "cheese", 1})
-	allIngredients = append(allIngredients, Ingredient{"Gouda", 1.75, "cheese", 2})
+	allIngredients = append(allIngredients, pb.Ingredient{
+		Name:  "Cheddar",
+		Price: 1.50,
+		Type:  "cheese",
+		Id:    int32(1),
+	})
+	allIngredients = append(allIngredients, pb.Ingredient{
+		Name:  "Gouda",
+		Price: 1.75,
+		Type:  "cheese",
+		Id:    int32(2),
+	})
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -46,7 +48,7 @@ func (s *server) GetIngredient(ctx context.Context, in *pb.IngredientRequest) (*
 		Name:  ingredient.Name,
 		Price: ingredient.Price,
 		Type:  ingredient.Type,
-		Id:    ingredient.ID,
+		Id:    ingredient.Id,
 	}, nil
 }
 
@@ -58,19 +60,31 @@ func (s *server) GetIngredients(ctx context.Context, _ *pb.Empty) (*pb.MultipleI
 			Name:  ingredient.Name,
 			Price: ingredient.Price,
 			Type:  ingredient.Type,
-			Id:    ingredient.ID,
+			Id:    ingredient.Id,
 		})
 	}
 	return &result, nil
 }
 
+func (s *server) AddIngredient(ctx context.Context, newIngredient *pb.NewIngredient) (*pb.Ingredient, error) {
+	log.Printf("Received request to add new Ingredient")
+	ingredient := pb.Ingredient{
+		Name:  newIngredient.Name,
+		Price: newIngredient.Price,
+		Type:  newIngredient.Type,
+		Id:    int32(len(allIngredients) + 1),
+	}
+	allIngredients = append(allIngredients, ingredient)
+	return &ingredient, nil
+}
+
 // FindIngredient returns an Ingredient from allIngredients based on ID
-func FindIngredient(id int32) (Ingredient, error) {
-	for _, ingredient := range allIngredients {
-		if ingredient.ID == id {
-			return ingredient, nil
+func FindIngredient(id int32) (ingredient pb.Ingredient, err error) {
+	for _, ingredient = range allIngredients {
+		if ingredient.Id == id {
+			return
 		}
 	}
-	var fake Ingredient
-	return fake, errors.New("No such ingredient")
+	err = fmt.Errorf("No such ingredient %d", id)
+	return
 }

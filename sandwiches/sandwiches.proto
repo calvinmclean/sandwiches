@@ -7,6 +7,7 @@ message Empty{}
 service Ingredients {
   rpc GetIngredient (IngredientRequest) returns (Ingredient) {}
   rpc GetIngredients (Empty) returns (MultipleIngredient) {}
+  rpc AddIngredient(NewIngredient) returns (Ingredient) {}
 }
 message IngredientRequest {
   int32 id = 1;
@@ -16,6 +17,11 @@ message Ingredient {
   double price = 2;
   string type = 3;
   int32 id = 4;
+}
+message NewIngredient {
+  string name = 1;
+  double price = 2;
+  string type = 3;
 }
 message MultipleIngredient {
   repeated Ingredient ingredients = 1;

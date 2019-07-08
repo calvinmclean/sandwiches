@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"google.golang.org/grpc"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -47,7 +48,7 @@ func main() {
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/ingredients", apiGetAllIngredients).Methods("GET")
-	// router.HandleFunc("/ingredients", AddIngredient).Methods("POST")
+	router.HandleFunc("/ingredients", apiAddIngredient).Methods("POST")
 	router.HandleFunc("/ingredients/{id}", apiGetSingleIngredient).Methods("GET")
 	// router.HandleFunc("/ingredients/{id}", DeleteIngredient).Methods("DELETE")
 
@@ -140,7 +141,7 @@ func getMenuItems() pb.MultipleMenuItem {
 
 func apiGetSingleIngredient(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-	ingredientJSON := getIngredientJSON(id)
+	ingredientJSON := getIngredientJSON(int32(id))
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(ingredientJSON)
 }
@@ -152,10 +153,30 @@ func apiGetAllIngredients(w http.ResponseWriter, r *http.Request) {
 	w.Write(ingredientsJSON)
 }
 
-func getIngredientJSON(id int) (result []byte) {
-	ingredient := getSingleIngredient(int32(id))
+func getIngredientJSON(id int32) (result []byte) {
+	ingredient := getSingleIngredient(id)
 	result, _ = json.Marshal(ingredient)
 	return
+}
+
+func apiAddIngredient(w http.ResponseWriter, r *http.Request) {
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var ingredient pb.Ingredient
+	json.Unmarshal(reqBody, &ingredient)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	newIngredient, err := ingredientsClient.AddIngredient(ctx, &pb.NewIngredient{
+		Name:  ingredient.Name,
+		Price: ingredient.Price,
+		Type:  ingredient.Type,
+	})
+	if err != nil {
+		log.Fatalf("could not greet: %v", err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(getIngredientJSON(newIngredient.Id))
 }
 
 func apiGetSingleRecipe(w http.ResponseWriter, r *http.Request) {
