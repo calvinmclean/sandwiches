@@ -1,17 +1,14 @@
-package main
+package client
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/gorilla/mux"
 	"google.golang.org/grpc"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 
-	pb "sandwiches/sandwiches"
+	pb "sandwiches/protobuf"
 )
 
 var recipesClient pb.RecipesClient
@@ -19,6 +16,11 @@ var ingredientsClient pb.IngredientsClient
 var menuClient pb.MenuClient
 
 func main() {
+	Start()
+}
+
+// Start ...
+func Start() {
 	conn := getConnection("localhost:50051")
 	ingredientsClient = pb.NewIngredientsClient(conn)
 
@@ -29,21 +31,12 @@ func main() {
 	menuClient = pb.NewMenuClient(conn)
 	defer conn.Close()
 
-	ing := getSingleIngredient(int32(1))
-	rec := getSingleRecipe(int32(1))
 	allIngredients := getAllIngredients()
 	allRecipes := getAllRecipes()
 	// menu := getMenuItems()
 
-	log.Printf("Ingredient 1 name: %s", ing.Name)
 	log.Printf("All Ingredients: %v", allIngredients.Ingredients)
-
-	log.Printf("Recipe 1 name: %s", rec.Name)
-	log.Printf("    Meats:    %v", rec.Meats)
-	log.Printf("    Cheeses:  %v", rec.Cheeses)
-	log.Printf("    Toppings: %v", rec.Toppings)
 	log.Printf("All Recipes: %v", allRecipes.Recipes)
-
 	// log.Printf("Menu: %v", menu)
 
 	router := mux.NewRouter().StrictSlash(true)
@@ -136,81 +129,3 @@ func getMenuItems() pb.MultipleMenuItem {
 }
 
 // End gRPC functions
-
-// Start REST API functions
-
-func apiGetSingleIngredient(w http.ResponseWriter, r *http.Request) {
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-	ingredientJSON := getIngredientJSON(int32(id))
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(ingredientJSON)
-}
-
-func apiGetAllIngredients(w http.ResponseWriter, r *http.Request) {
-	var ingredientsJSON []byte
-	ingredientsJSON, _ = json.Marshal(getAllIngredients())
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(ingredientsJSON)
-}
-
-func getIngredientJSON(id int32) (result []byte) {
-	ingredient := getSingleIngredient(id)
-	result, _ = json.Marshal(ingredient)
-	return
-}
-
-func apiAddIngredient(w http.ResponseWriter, r *http.Request) {
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	var ingredient pb.Ingredient
-	json.Unmarshal(reqBody, &ingredient)
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	newIngredient, err := ingredientsClient.AddIngredient(ctx, &pb.NewIngredient{
-		Name:  ingredient.Name,
-		Price: ingredient.Price,
-		Type:  ingredient.Type,
-	})
-	if err != nil {
-		log.Fatalf("could not greet: %v", err)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(getIngredientJSON(newIngredient.Id))
-}
-
-func apiGetSingleRecipe(w http.ResponseWriter, r *http.Request) {
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-	recipeJSON := getRecipeJSON(int32(id))
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(recipeJSON)
-}
-
-func apiGetAllRecipes(w http.ResponseWriter, r *http.Request) {
-	var recipesJSON []byte
-	recipesJSON, _ = json.Marshal(getAllRecipes())
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(recipesJSON)
-}
-
-func getRecipeJSON(id int32) (result []byte) {
-	recipe := getSingleRecipe(int32(id))
-	result, _ = json.Marshal(recipe)
-	return
-}
-
-func apiAddRecipe(w http.ResponseWriter, r *http.Request) {
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	var recipe pb.NewRecipe
-	json.Unmarshal(reqBody, &recipe)
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	newRecipe, err := recipesClient.AddRecipe(ctx, &recipe)
-	if err != nil {
-		log.Fatalf("could not greet: %v", err)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(getRecipeJSON(newRecipe.Id))
-}

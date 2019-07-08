@@ -1,4 +1,4 @@
-package main
+package ingredients
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
-	pb "sandwiches/sandwiches"
+	pb "sandwiches/protobuf"
 )
 
 const (
@@ -18,6 +18,11 @@ type server struct{}
 var allIngredients []pb.Ingredient
 
 func main() {
+	Start()
+}
+
+// Start ...
+func Start() {
 	allIngredients = append(allIngredients, pb.Ingredient{
 		Name:  "Cheddar",
 		Price: 1.50,

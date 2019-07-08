@@ -1,4 +1,4 @@
-package main
+package recipes
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
-	pb "sandwiches/sandwiches"
+	pb "sandwiches/protobuf"
 )
 
 const (
@@ -19,6 +19,11 @@ type server struct{}
 var allRecipes []pb.Recipe
 
 func main() {
+	Start()
+}
+
+// Start ...
+func Start() {
 	allRecipes = append(allRecipes, pb.Recipe{
 		Name:     "BLT",
 		Id:       1,
