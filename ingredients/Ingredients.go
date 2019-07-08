@@ -27,6 +27,7 @@ var allIngredients []Ingredient
 
 func main() {
 	allIngredients = append(allIngredients, Ingredient{"Cheddar", 1.50, "cheese", 1})
+	allIngredients = append(allIngredients, Ingredient{"Gouda", 1.75, "cheese", 2})
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
