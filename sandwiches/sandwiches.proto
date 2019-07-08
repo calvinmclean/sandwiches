@@ -7,7 +7,7 @@ message Empty{}
 service Ingredients {
   rpc GetIngredient (IngredientRequest) returns (Ingredient) {}
   rpc GetIngredients (Empty) returns (MultipleIngredient) {}
-  rpc AddIngredient(NewIngredient) returns (Ingredient) {}
+  rpc AddIngredient (NewIngredient) returns (Ingredient) {}
 }
 message IngredientRequest {
   int32 id = 1;
@@ -31,6 +31,7 @@ message MultipleIngredient {
 service Recipes {
   rpc GetRecipe (RecipeRequest) returns (Recipe) {}
   rpc GetRecipes (Empty) returns (MultipleRecipe) {}
+  rpc AddRecipe (NewRecipe) returns (Recipe) {}
 }
 message RecipeRequest {
   int32 id = 1;
@@ -42,6 +43,13 @@ message Recipe {
   repeated int32 meats = 4 [packed=true];
   repeated int32 cheeses = 5 [packed=true];
   repeated int32 toppings = 6 [packed=true];
+}
+message NewRecipe {
+  string name = 1;
+  int32 bread = 2;
+  repeated int32 meats = 3 [packed=true];
+  repeated int32 cheeses = 4 [packed=true];
+  repeated int32 toppings = 5 [packed=true];
 }
 message MultipleRecipe {
   repeated Recipe recipes = 1;

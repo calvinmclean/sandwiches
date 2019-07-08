@@ -53,7 +53,7 @@ func main() {
 	// router.HandleFunc("/ingredients/{id}", DeleteIngredient).Methods("DELETE")
 
 	router.HandleFunc("/recipes", apiGetAllRecipes).Methods("GET")
-	// router.HandleFunc("/recipes", AddRecipe).Methods("POST")
+	router.HandleFunc("/recipes", apiAddRecipe).Methods("POST")
 	router.HandleFunc("/recipes/{id}", apiGetSingleRecipe).Methods("GET")
 	// router.HandleFunc("/recipes/{id}", DeleteRecipe).Methods("DELETE")
 
@@ -181,7 +181,7 @@ func apiAddIngredient(w http.ResponseWriter, r *http.Request) {
 
 func apiGetSingleRecipe(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-	recipeJSON := getRecipeJSON(id)
+	recipeJSON := getRecipeJSON(int32(id))
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(recipeJSON)
 }
@@ -193,8 +193,24 @@ func apiGetAllRecipes(w http.ResponseWriter, r *http.Request) {
 	w.Write(recipesJSON)
 }
 
-func getRecipeJSON(id int) (result []byte) {
+func getRecipeJSON(id int32) (result []byte) {
 	recipe := getSingleRecipe(int32(id))
 	result, _ = json.Marshal(recipe)
 	return
+}
+
+func apiAddRecipe(w http.ResponseWriter, r *http.Request) {
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var recipe pb.NewRecipe
+	json.Unmarshal(reqBody, &recipe)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	newRecipe, err := recipesClient.AddRecipe(ctx, &recipe)
+	if err != nil {
+		log.Fatalf("could not greet: %v", err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(getRecipeJSON(newRecipe.Id))
 }

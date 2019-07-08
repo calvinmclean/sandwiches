@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -16,20 +16,17 @@ const (
 // server is used to implement helloworld.GreeterServer.
 type server struct{}
 
-// Recipe represents the name and collection of ingredients for a sandwich
-type Recipe struct {
-	Name     string  `json:"name" yaml:"name"`
-	ID       int32   `json:"id" yaml:"id"`
-	Bread    int32   `json:"bread" yaml:"bread"`
-	Meats    []int32 `json:"meats" yaml:"meats"`
-	Cheeses  []int32 `json:"cheeses" yaml:"cheeses"`
-	Toppings []int32 `json:"toppings" yaml:"toppings"`
-}
-
-var allRecipes []Recipe
+var allRecipes []pb.Recipe
 
 func main() {
-	allRecipes = append(allRecipes, Recipe{"BLT", 1, 1, []int32{2}, []int32{}, []int32{3, 4, 5}})
+	allRecipes = append(allRecipes, pb.Recipe{
+		Name:     "BLT",
+		Id:       1,
+		Bread:    1,
+		Meats:    []int32{2},
+		Cheeses:  []int32{},
+		Toppings: []int32{3, 4, 5},
+	})
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -44,39 +41,40 @@ func main() {
 func (s *server) GetRecipe(ctx context.Context, in *pb.RecipeRequest) (*pb.Recipe, error) {
 	log.Printf("Received: %d", in.Id)
 	recipe, _ := FindRecipe(in.Id)
-	return &pb.Recipe{
-		Name:     recipe.Name,
-		Id:       recipe.ID,
-		Bread:    recipe.Bread,
-		Meats:    recipe.Meats,
-		Cheeses:  recipe.Cheeses,
-		Toppings: recipe.Toppings,
-	}, nil
+	return &recipe, nil
 }
 
 func (s *server) GetRecipes(ctx context.Context, _ *pb.Empty) (*pb.MultipleRecipe, error) {
 	log.Printf("Received request for all Recipes")
 	var result pb.MultipleRecipe
 	for _, recipe := range allRecipes {
-		result.Recipes = append(result.Recipes, &pb.Recipe{
-			Name:     recipe.Name,
-			Id:       recipe.ID,
-			Bread:    recipe.Bread,
-			Meats:    recipe.Meats,
-			Cheeses:  recipe.Cheeses,
-			Toppings: recipe.Toppings,
-		})
+		rec, _ := FindRecipe(recipe.Id)
+		result.Recipes = append(result.Recipes, &rec)
 	}
 	return &result, nil
 }
 
+func (s *server) AddRecipe(ctx context.Context, newRecipe *pb.NewRecipe) (*pb.Recipe, error) {
+	log.Printf("Received request to add new Recipe")
+	recipe := pb.Recipe{
+		Name:     newRecipe.Name,
+		Id:       int32(len(allRecipes) + 1),
+		Bread:    newRecipe.Bread,
+		Cheeses:  newRecipe.Cheeses,
+		Meats:    newRecipe.Meats,
+		Toppings: newRecipe.Toppings,
+	}
+	allRecipes = append(allRecipes, recipe)
+	return &recipe, nil
+}
+
 // FindRecipe returns a Recipe from allRecipes based on ID
-func FindRecipe(id int32) (Recipe, error) {
-	for _, recipe := range allRecipes {
-		if recipe.ID == id {
-			return recipe, nil
+func FindRecipe(id int32) (recipe pb.Recipe, err error) {
+	for _, recipe = range allRecipes {
+		if recipe.Id == id {
+			return
 		}
 	}
-	var fake Recipe
-	return fake, errors.New("No such recipe")
+	err = fmt.Errorf("No such recipe %d", id)
+	return
 }

@@ -51,7 +51,8 @@ func (s *server) GetIngredients(ctx context.Context, _ *pb.Empty) (*pb.MultipleI
 	log.Printf("Received request for all Ingredients")
 	var result pb.MultipleIngredient
 	for _, ingredient := range allIngredients {
-		result.Ingredients = append(result.Ingredients, &ingredient)
+		ing, _ := FindIngredient(ingredient.Id)
+		result.Ingredients = append(result.Ingredients, &ing)
 	}
 	return &result, nil
 }
