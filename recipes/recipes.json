@@ -1,0 +1,83 @@
+[
+  {
+    "name": "BLT",
+    "id": 1,
+    "bread": 1,
+    "meats": [
+      2
+    ],
+    "cheeses": [
+
+    ],
+    "toppings": [
+      3,
+      4,
+      5
+    ]
+  },
+  {
+    "name": "Ham and Cheese",
+    "id": 2,
+    "bread": 1,
+    "meats": [
+      7
+    ],
+    "cheeses": [
+      8
+    ],
+    "toppings": [
+      3,
+      4,
+      5
+    ]
+  },
+  {
+    "name": "Chicken, Sprouts, and Provolone Sandwich",
+    "id": 3,
+    "bread": 6,
+    "meats": [
+      9
+    ],
+    "cheeses": [
+      21
+    ],
+    "toppings": [
+      10,
+      11
+    ]
+  },
+  {
+    "name": "Roast Pork and Pickled Cucumber Sandwich",
+    "id": 4,
+    "bread": 12,
+    "meats": [
+      13
+    ],
+    "cheeses": [
+
+    ],
+    "toppings": [
+      14,
+      15,
+      16,
+      5
+    ]
+  },
+  {
+    "name": "Fried Bologna Sandwich",
+    "id": 5,
+    "bread": 17,
+    "meats": [
+      18
+    ],
+    "cheeses": [
+
+    ],
+    "toppings": [
+      19,
+      5,
+      20,
+      3
+    ]
+  }
+]

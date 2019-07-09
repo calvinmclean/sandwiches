@@ -8,4 +8,4 @@ WORKDIR /go/src/sandwiches/${app}
 RUN go get -v
 RUN go build -v
 
-CMD ["${app}"]
+CMD "${app}"

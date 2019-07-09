@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"google.golang.org/grpc"
+	"io/ioutil"
 	"log"
 	"net"
+	"os"
 	pb "sandwiches/protobuf"
 	"time"
 )
@@ -24,18 +27,7 @@ func main() {
 
 // Start ...
 func Start() {
-	allIngredients = append(allIngredients, pb.Ingredient{
-		Name:  "Cheddar",
-		Price: 1.50,
-		Type:  "cheese",
-		Id:    int32(1),
-	})
-	allIngredients = append(allIngredients, pb.Ingredient{
-		Name:  "Gouda",
-		Price: 1.75,
-		Type:  "cheese",
-		Id:    int32(2),
-	})
+	allIngredients = getIngredientsFromFile("ingredients.json")
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -89,6 +81,19 @@ func updateMenu() {
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
+}
+
+func getIngredientsFromFile(fname string) (ingredients []pb.Ingredient) {
+	file, err := os.Open(fname)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("Successfully Opened " + fname)
+	defer file.Close()
+
+	byteValue, _ := ioutil.ReadAll(file)
+	json.Unmarshal(byteValue, &ingredients)
+	return
 }
 
 // FindIngredient returns an Ingredient from allIngredients based on ID

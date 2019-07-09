@@ -8,18 +8,24 @@ services:
       context: '.'
       args:
         app: 'recipes'
+    environment:
+      app: 'recipes'
 
   ingredients:
     build:
       context: '.'
       args:
         app: 'ingredients'
+    environment:
+      app: 'ingredients'
 
   menu:
     build:
       context: '.'
       args:
         app: 'menu'
+    environment:
+      app: 'menu'
     depends_on:
       - 'recipes'
       - 'ingredients'
@@ -29,6 +35,8 @@ services:
       context: '.'
       args:
         app: 'client'
+    environment:
+      app: 'client'
     depends_on:
       - 'recipes'
       - 'ingredients'
