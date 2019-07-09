@@ -6,17 +6,20 @@ services:
   recipes:
     build:
       context: '.'
-      dockerfile: 'Dockerfile-recipes'
+      args:
+        app: 'recipes'
 
   ingredients:
     build:
       context: '.'
-      dockerfile: 'Dockerfile-ingredients'
+      args:
+        app: 'ingredients'
 
   menu:
     build:
       context: '.'
-      dockerfile: 'Dockerfile-menu'
+      args:
+        app: 'menu'
     depends_on:
       - 'recipes'
       - 'ingredients'
@@ -24,7 +27,8 @@ services:
   client:
     build:
       context: '.'
-      dockerfile: 'Dockerfile-client'
+      args:
+        app: 'client'
     depends_on:
       - 'recipes'
       - 'ingredients'

@@ -1,8 +1,0 @@
-FROM golang:1.12.4
-COPY . /go/src/sandwiches
-WORKDIR /go/src/sandwiches/ingredients
-
-RUN go get -v
-RUN go build -v
-
-CMD ["ingredients"]
